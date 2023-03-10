@@ -1,4 +1,4 @@
-# create-svelte
+# OpenTourney
 
 Frontend for the OpenTourney app, powered by Svelte.
 
