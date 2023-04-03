@@ -6,7 +6,15 @@ declare global {
 		// interface Locals {}
 		// interface PageData {}
 		// interface Platform {}
+		interface UserData {
+			loggedIn: boolean,
+			username?: string,
+			email?: string,
+			avatar?: string,
+			steamID?: string,
+			id?: number
+		}
 	}
 }
 
-export {};
+export {UserData};
