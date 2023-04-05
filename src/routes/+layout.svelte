@@ -93,7 +93,7 @@
           {$userData.email}
         </span>
       </DropdownHeader>
-      <DropdownItem>Settings</DropdownItem>
+      <DropdownItem on:click={() => goto('/settings')}>Settings</DropdownItem>
       <DropdownItem>
         <div class="flex justify-between items-center">
           <span>Theme</span>
