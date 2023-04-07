@@ -1,21 +1,25 @@
 import { writable } from 'svelte/store';
 import { browser } from "$app/environment";
 
+import { PUBLIC_API_URL } from "$env/static/public";
+
 const initialUserData: App.UserData = {
     loggedIn: false
 }
 
 export const userData = writable(initialUserData);
 
-if (browser) {
-    const storedData = localStorage.getItem('userData');
-    if (storedData) {
-        userData.set(JSON.parse(storedData));
-    }
-}
-
-if (browser) {
-    userData.subscribe((value) => {
-        localStorage.setItem('userData', JSON.stringify(value));
-    });
-}
+fetch(`${PUBLIC_API_URL}/users/me`, {
+    credentials: "include"
+})
+    .then((res) => {
+        if (res.ok) {
+            return res.json();
+        }
+        throw Error();
+    })
+    .then((data) => {
+        data['loggedIn'] = true;
+        userData.set(data);
+    })
+    .catch(() => {});

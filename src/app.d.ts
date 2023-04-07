@@ -8,9 +8,10 @@ declare global {
 		// interface Platform {}
 		interface UserData {
 			loggedIn: boolean,
-			username?: string,
+			name?: string,
 			email?: string,
 			avatar?: string,
+			role?: number,
 			steamID?: string,
 			id?: number
 		}
