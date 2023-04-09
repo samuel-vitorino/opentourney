@@ -46,7 +46,7 @@
 <svelte:head>
     <style>
         .route-background {
-            background: url("/images/background.png") !important;
+            background: url("/images/background.jpg") !important;
             background-size: cover !important;
         }
 

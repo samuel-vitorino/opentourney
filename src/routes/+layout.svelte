@@ -75,7 +75,7 @@
   }
 </script>
 
-<Navbar let:hidden let:toggle class="route-background-transparent">
+<Navbar let:hidden let:toggle class="route-background-transparent dark:bg-gray-900" color="gray">
   <NavBrand href="/">
     <img src="favicon.png" class="mr-3 h-10 sm:h-10" alt="OpenTourney Logo" />
   </NavBrand>
@@ -103,7 +103,7 @@
           {$userData.email}
         </span>
       </DropdownHeader>
-      <DropdownItem on:click={() => goto("/settings")}>Settings</DropdownItem>
+      <DropdownItem href="/settings">Settings</DropdownItem>
       <DropdownItem>
         <div class="flex justify-between items-center">
           <span>Theme</span>
@@ -124,9 +124,9 @@
   <div class="flex grow">
     {#if $userData.loggedIn}
       <Sidebar>
-        <SidebarWrapper class="h-full">
+        <SidebarWrapper class="h-full dark:bg-gray-900">
           <SidebarGroup>
-            <SidebarItem label="Home" active={activeUrl == '/home'}>
+            <SidebarItem label="Home" active={activeUrl == '/home'} href="/home">
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
