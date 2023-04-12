@@ -4,8 +4,7 @@
     import { goto } from "$app/navigation";
     import { GithubIcon } from "svelte-feather-icons";
 
-    console.log($userData.loggedIn)
-    if ($userData.loggedIn) {
+    $: if ($userData.loggedIn) {
         goto("/home")
     }
 </script>

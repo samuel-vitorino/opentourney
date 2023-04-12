@@ -12,7 +12,7 @@ declare global {
 			email?: string,
 			avatar?: string,
 			role?: number,
-			steamID?: string,
+			steamid?: string,
 			id?: number
 		}
 	}

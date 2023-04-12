@@ -2,7 +2,6 @@
     import { userData } from "@src/stores/user";
     import {
         P,
-        Avatar,
         Card,
         Table,
         TableBody,
@@ -11,11 +10,13 @@
         TableHead,
         TableHeadCell,
     } from "flowbite-svelte";
+    import { ArrowRightCircleIcon } from "svelte-feather-icons";
+    import { goto } from '$app/navigation';
     import "@styles/home.scss";
 </script>
 
-<div class="flex flex-col w-full">
-    {#if !$userData.steamID && $userData.loggedIn}
+<div class="flex flex-col w-full shadow-md">
+    {#if !$userData.steamid && $userData.loggedIn}
         <div
             id="connectWithSteam"
             class="flex flex-col items-center justify-center"
@@ -23,142 +24,54 @@
             <P color="text-white">Connect with Steam to start playing!</P>
         </div>
     {/if}
-    <div class="box-content p-4">
-        <div>
-            <div class="flex flex-row">
-                <Avatar
-                    id="avatar-menu"
-                    class="w-[150px] h-[150px] rounded-sm"
-                    src={$userData.avatar ?? ""}
-                />
-                <div class="self-end">
-                    <P size="4xl" class="ml-3">{$userData.name ?? ""}</P>
-                    <P size="xl" class="ml-3">Member since 10/01/2020</P>
+    <div class="flex flex-col box-content p-4 grow">
+        <div class="flex flex-col grow">
+            <div class="flex flex-row grow box-content p-2 justify-center">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="relative flex grow cursor-pointer mr-2" on:click={() => goto("/tournaments")}>
+                    <div class="w-full rounded-lg box-content p-5" id="tournamentsCard">
+                        <h5
+                            class="mb-2 text-2xl font-extrabold tracking-tight text-white"
+                        >
+                            Tournaments
+                        </h5>
+                    </div>
+                    <div class="flex h-full w-full items-center justify-center absolute top-0 left-0 text-white rounded-lg" id="tournamentsArrowContainer">
+                        <div id="tournamentsArrow" class="hidden">
+                            <ArrowRightCircleIcon size="150"/>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div />
-        </div>
-        <hr class="mt-5 mb-5">
-        <div>
-            <div class="flex">
-                <caption class="pb-5 pl-5 text-lg font-semibold text-left text-gray-900 bg-white dark:text-white dark:bg-gray-800 grow">Individual Statistics</caption>
-            </div>
-            <div class="flex flex-row justify-around">
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Maps played
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        25
-                    </p>
-                </Card>
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        K/D
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        1.5
-                    </p>
-                </Card>
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        K/R
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        1.5
-                    </p>
-                </Card>
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Headshot %
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        53%
-                    </p>
-                </Card>
-                <Card class="grow">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Favourite Weapon
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        AK-47
-                    </p>
-                </Card>
-            </div>
-        </div>
-        <div>
-            <div class="flex">
-                <caption class="p-5 text-lg font-semibold text-left text-gray-900 bg-white dark:text-white dark:bg-gray-800 grow">Tournament Statistics</caption>
-            </div>
-            <div class="flex flex-row justify-around">
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Tournaments played
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        10
-                    </p>
-                </Card>
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        First Places
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        2
-                    </p>
-                </Card>
-                <Card class="grow mr-3">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Second Places
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        5
-                    </p>
-                </Card>
-                <Card class="grow">
-                    <h5
-                        class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Third places
-                    </h5>
-                    <p
-                        class="font-normal text-gray-700 dark:text-gray-400 leading-tight"
-                    >
-                        3
-                    </p>
-                </Card>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="relative flex grow cursor-pointer mr-2" on:click={() => goto("/teams")}>
+                    <div class="w-full rounded-lg box-content p-5" id="teamsCard">
+                        <h5
+                            class="mb-2 text-2xl font-extrabold tracking-tight text-white"
+                        >
+                            Teams
+                        </h5>
+                    </div>
+                    <div class="flex h-full w-full items-center justify-center absolute top-0 left-0 text-white rounded-lg" id="teamsArrowContainer">
+                        <div id="teamsArrow" class="hidden">
+                            <ArrowRightCircleIcon size="150"/>
+                        </div>
+                    </div>
+                </div>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="relative flex grow cursor-pointer" on:click={() => goto(`/users/${$userData.id}`)}>
+                    <div class="w-full rounded-lg box-content p-5" id="profileCard">
+                        <h5
+                            class="mb-2 text-2xl font-extrabold tracking-tight text-white"
+                        >
+                            Profile
+                        </h5>
+                    </div>
+                    <div class="flex h-full w-full items-center justify-center absolute top-0 left-0 text-white rounded-lg" id="profileArrowContainer">
+                        <div id="profileArrow" class="hidden">
+                            <ArrowRightCircleIcon size="150"/>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <Table>
