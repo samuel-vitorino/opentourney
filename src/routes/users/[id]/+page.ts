@@ -1,7 +1,7 @@
 import { PUBLIC_API_URL } from "$env/static/public";
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 
-export const load: PageServerLoad = async({ fetch, params }) => {
+export const load: PageLoad = async({ fetch, params }) => {
     const user = await fetch(`${PUBLIC_API_URL}/users/${params.id}`)
         .then((res) => {
             if (res.ok) {
