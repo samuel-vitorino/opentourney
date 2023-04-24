@@ -11,9 +11,9 @@ output "firewall_rule" {
 }
 
 output "instance_name" {
-  value = "${module.frontend-server.instance_name}"
+  value = "${module.frontend_server.instance_name}"
 }
 
 output "external_ip" {
-  value = "${module.frontend-server.external_ip}"
+  value = "${module.frontend_server.external_ip}"
 }

@@ -2,7 +2,7 @@ locals {
   network = "${element(split("-", var.subnet), 0)}"
 }
 
-resource "google_compute_instance" "frontend-server" {
+resource "google_compute_instance" "frontend_server" {
   project      = "${var.project}"
   zone         = "us-west1-a"
   name         = "${local.network}-frontend-instance"
@@ -23,5 +23,5 @@ resource "google_compute_instance" "frontend-server" {
     subnetwork = "${var.subnet}"
   }
 
-  tags = ["frontend-server"]
+  tags = ["frontend_server"]
 }
