@@ -81,3 +81,6 @@ steps:
         echo "*******************************************************************************"
       fi
 # [END tf-apply]
+
+images:
+- 'gcr.io/$PROJECT_ID/opentourney-frontend'
