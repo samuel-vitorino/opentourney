@@ -8,11 +8,11 @@ resource "google_compute_instance" "frontend-server" {
   name         = "${local.network}-frontend-instance"
   machine_type = "f1-micro"
 
-  metadata_startup_script = "sudo apt-get update && sudo apt-get install apache2 -y && echo '<html><body><h1>Environment: ${local.network}</h1></body></html>' | sudo tee /var/www/html/index.html"
+  metadata_startup_script = "docker run -p 80:80 gcr.io/${var.project}/opentourney-frontend:latest"
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-11"
+      image = "cos-cloud/cos-97-lts"
     }
   }
 
