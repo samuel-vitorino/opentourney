@@ -4,7 +4,7 @@ locals {
 
 resource "google_compute_instance" "frontend-server" {
   project      = "${var.project}"
-  zone         = "eu-southwest1-a"
+  zone         = "europe-southwest1-a"
   name         = "${local.network}-frontend-instance"
   machine_type = "f1-micro"
 
