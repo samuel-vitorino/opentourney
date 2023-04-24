@@ -91,7 +91,10 @@
             <Button type="submit" id="loginButton">Sign in</Button>
             <div class="flex mt-5 self-center">
                 <P size="base" class="mr-2">New to OpenTourney?</P>
-                <P size="base" color="text-blue-700 dark:text-blue-500">Join now</P>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="cursor-pointer" on:click={() => goto("/register")}>
+                    <P size="base" color="text-blue-700 dark:text-blue-500">Join now</P>
+                </div>
             </div>
         </div>
     </form>
