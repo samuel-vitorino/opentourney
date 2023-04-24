@@ -12,7 +12,7 @@ resource "google_compute_instance" "frontend-server" {
 
   boot_disk {
     initialize_params {
-      image = "cos-cloud/cos-97-lts"
+      image = "debian-cloud/debian-11"
     }
   }
 
