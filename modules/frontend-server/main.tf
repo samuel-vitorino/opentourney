@@ -8,10 +8,7 @@ resource "google_compute_instance" "frontend-server" {
   name         = "${local.network}-frontend-instance"
   machine_type = "f1-micro"
 
-  metadata_startup_script = <<-EOF
-    #!/bin/bash
-    docker run -p 80:80 gcr.io/${var.project}/opentourney-frontend:latest
-  EOF
+  metadata_startup_script = "docker run -p 80:80 gcr.io/${var.project}/opentourney-frontend:latest"
 
   boot_disk {
     initialize_params {
