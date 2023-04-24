@@ -12,8 +12,8 @@ module "vpc" {
   env     = "${local.env}"
 }
 
-module "frontend_server" {
-  source  = "../../modules/frontend_server"
+module "frontend-server" {
+  source  = "../../modules/frontend-server"
   project = "${var.project}"
   subnet  = "${module.vpc.subnet}"
 }
