@@ -5,7 +5,7 @@ resource "google_cloud_run_service" "server" {
   template {
     spec {
       containers {
-        image = "gcr.io/${var.project}/:latest"
+        image = "gcr.io/${var.project}/opentourney-frontend:latest"
       }
     }
   }
