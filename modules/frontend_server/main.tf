@@ -21,6 +21,9 @@ resource "google_compute_instance" "frontend_server" {
 
   network_interface {
     subnetwork = "${var.subnet}"
+
+    access_config {
+    }
   }
 
   tags = ["frontend_server"]
