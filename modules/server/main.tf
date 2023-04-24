@@ -1,19 +1,27 @@
-resource "google_cloud_run_service" "server" {
-  name     = "example"
-  location = "us-central1"
-  subnetwork = var.subnet
-  template {
-    spec {
-      containers {
-        image = "gcr.io/${var.project}/opentourney-frontend:latest"
-      }
+locals {
+  network = "${element(split("-", var.subnet), 0)}"
+}
+
+resource "google_compute_instance" "frontend-server" {
+  project      = "${var.project}"
+  zone         = "us-west1-a"
+  name         = "${local.network}-frontend-instance"
+  machine_type = "f1-micro"
+
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    docker run -p 80:80 gcr.io/${var.project}/opentourney-frontend:latest
+  EOF
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
     }
   }
 
-  traffics {
-    percent         = 100
-    latest_revision = true
+  network_interface {
+    subnetwork = "${var.subnet}"
   }
 
-  tags = ["server"]
+  tags = ["frontend-server"]
 }
