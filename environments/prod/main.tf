@@ -15,11 +15,11 @@ module "prod-vpc" {
 module "prod-frontend-server" {
   source  = "../../modules/frontend-server"
   project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
+  subnet  = "${module.prod-vpc.subnet}"
 }
 
 module "prod-firewall" {
   source  = "../../modules/firewall"
   project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
+  subnet  = "${module.prod-vpc.subnet}"
 }
