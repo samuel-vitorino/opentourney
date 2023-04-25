@@ -23,5 +23,5 @@ resource "google_compute_instance" "frontend-server" {
     }
   }
 
-  tags = ["frontend-server"]
+  tags = ["${local.network}-frontend-server"]
 }
