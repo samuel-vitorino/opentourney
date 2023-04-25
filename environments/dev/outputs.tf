@@ -1,19 +1,19 @@
 output "network" {
-  value = "${module.vpc.network}"
+  value = "${module.dev-vpc.network}"
 }
 
 output "subnet" {
-  value = "${module.vpc.subnet}"
+  value = "${module.dev-vpc.subnet}"
 }
 
 output "firewall_rule" {
-  value = "${module.firewall.firewall_rule}"
+  value = "${module.dev-firewall.firewall_rule}"
 }
 
 output "instance_name" {
-  value = "${module.frontend-server.instance_name}"
+  value = "${module.dev-frontend-server.instance_name}"
 }
 
 output "external_ip" {
-  value = "${module.frontend-server.external_ip}"
+  value = "${module.dev-frontend-server.external_ip}"
 }
