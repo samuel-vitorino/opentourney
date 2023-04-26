@@ -1,7 +1,7 @@
 steps:
 - id: 'Build docker image'
   name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/opentourney-frontend', '--build-arg=ENV=.env.${env}', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/opentourney-frontend', '--build-arg=ENV=.env.$BRANCH_NAME', '.']
 
 - id: 'Push docker image'
   name: 'gcr.io/cloud-builders/docker'
