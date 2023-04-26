@@ -12,7 +12,7 @@ resource "google_compute_instance" "frontend-server" {
   name         = "${local.network}-frontend-instance"
   machine_type = "f1-micro"
 
-  metadata_startup_script = "docker run -p 80:80 ${data.google_container_registry_image.image_url}"
+  metadata_startup_script = "docker run -p 80:80 ${data.google_container_registry_image.frontend-image.image_url}"
 
   boot_disk {
     initialize_params {
