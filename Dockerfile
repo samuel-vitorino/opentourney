@@ -13,6 +13,10 @@ RUN npm install
 # Copy the rest of the application code to the container
 COPY . .
 
+ARG ENV=.env
+
+COPY ./$ENV ./.env
+
 # Build the SvelteKit application
 RUN npm run build
 
