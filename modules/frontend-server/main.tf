@@ -8,6 +8,7 @@ data "google_container_registry_image" "frontend-image" {
 
 resource "google_compute_address" "static-ip-address" {
   name = "opentourney-${local.network}"
+  region = "us-central1"
 }
 
 resource "google_compute_instance" "frontend-server" {
