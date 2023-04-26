@@ -6,6 +6,10 @@ data "google_container_registry_image" "frontend-image" {
   name = "opentourney-frontend"
 }
 
+resource "google_compute_address" "static-ip-address" {
+  name = "opentourney-${local.network}"
+}
+
 resource "google_compute_instance" "frontend-server" {
   project      = "${var.project}"
   zone         = "us-central1-a"
@@ -24,6 +28,7 @@ resource "google_compute_instance" "frontend-server" {
     subnetwork = "${var.subnet}"
 
     access_config {
+      nat_ip = "${google_compute_address.static-ip-address.address}"
     }
   }
 

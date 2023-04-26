@@ -14,7 +14,6 @@ RUN npm install
 COPY . .
 
 ARG ENV=.env
-RUN echo $ENV
 
 COPY ./$ENV ./.env
 
