@@ -8,7 +8,7 @@ data "google_container_registry_image" "frontend-image" {
 
 resource "null_resource" "null_im" {
   triggers = {
-    im = data.google_container_registry_image.frontend-image
+    im = data.google_container_registry_image.frontend-image.image_url
   }
 }
 
@@ -41,7 +41,7 @@ resource "google_compute_instance" "frontend-server" {
 
   lifecycle {
     replace_triggered_by = [
-      null_resource.null_im
+      null_resource.null_im.im
     ]
   }
 
