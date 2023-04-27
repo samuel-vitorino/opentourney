@@ -6,6 +6,12 @@ data "google_container_registry_image" "frontend-image" {
   name = "opentourney-frontend"
 }
 
+resource "null_resource" "null_im" {
+  triggers = {
+    im = data.google_container_registry_image.frontend-image.image_url
+  }
+}
+
 data "google_compute_address" "static-ip-address" {
   name = "opentourney-${local.network}"
   region = "us-central1"
@@ -35,7 +41,7 @@ resource "google_compute_instance" "frontend-server" {
 
   lifecycle {
     replace_triggered_by = [
-      data.google_container_registry_image.frontend-image
+      null_resource.null_im
     ]
   }
 
