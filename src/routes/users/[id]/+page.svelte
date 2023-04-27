@@ -201,10 +201,10 @@
       </TableHead>
       <TableBody tableBodyClass="divide-y">
         <TableBodyRow>
-          <TableBodyCell>Apple MacBook Pro 17"</TableBodyCell>
-          <TableBodyCell>Sliver</TableBodyCell>
-          <TableBodyCell>Laptop</TableBodyCell>
-          <TableBodyCell>$2999</TableBodyCell>
+          <TableBodyCell>Leiria Esports"</TableBodyCell>
+          <TableBodyCell>Maceira</TableBodyCell>
+          <TableBodyCell>CS:GO</TableBodyCell>
+          <TableBodyCell>10/05/2020</TableBodyCell>
           <TableBodyCell>
             <a
               href="/tables"
@@ -215,10 +215,10 @@
           </TableBodyCell>
         </TableBodyRow>
         <TableBodyRow>
-          <TableBodyCell>Microsoft Surface Pro</TableBodyCell>
-          <TableBodyCell>White</TableBodyCell>
-          <TableBodyCell>Laptop PC</TableBodyCell>
-          <TableBodyCell>$1999</TableBodyCell>
+          <TableBodyCell>Lisboa Esports"</TableBodyCell>
+          <TableBodyCell>Maceira</TableBodyCell>
+          <TableBodyCell>CS:GO</TableBodyCell>
+          <TableBodyCell>10/05/2020</TableBodyCell>
           <TableBodyCell>
             <a
               href="/tables"
