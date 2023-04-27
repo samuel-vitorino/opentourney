@@ -8,7 +8,7 @@ data "google_container_registry_image" "frontend-image" {
 
 resource "null_resource" "null_im" {
   triggers = {
-    im = data.google_container_registry_image.frontend-image.image_url
+    im = data.google_container_registry_image.frontend-image
   }
 }
 
