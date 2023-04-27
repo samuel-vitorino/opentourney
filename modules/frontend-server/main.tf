@@ -6,12 +6,6 @@ data "google_container_registry_image" "frontend-image" {
   name = "opentourney-frontend"
 }
 
-resource "null_resource" "null_im" {
-  triggers = {
-    im = data.google_container_registry_image.frontend-image.tag
-  }
-}
-
 data "google_compute_address" "static-ip-address" {
   name = "opentourney-${local.network}"
   region = "us-central1"
@@ -37,12 +31,6 @@ resource "google_compute_instance" "frontend-server" {
     access_config {
       nat_ip = "${data.google_compute_address.static-ip-address.address}"
     }
-  }
-
-  lifecycle {
-    replace_triggered_by = [
-      null_resource.null_im
-    ]
   }
 
   tags = ["${local.network}-frontend-server"]
