@@ -33,5 +33,11 @@ resource "google_compute_instance" "frontend-server" {
     }
   }
 
+  lifecycle {
+    replace_on_change {
+      im = "${data.google_container_registry_image.frontend-image.image_url}"
+    }
+  }
+
   tags = ["${local.network}-frontend-server"]
 }
