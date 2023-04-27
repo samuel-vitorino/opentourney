@@ -35,7 +35,7 @@ resource "google_compute_instance" "frontend-server" {
 
   lifecycle {
     replace_triggered_by = [
-      data.google_container_registry_image.frontend-image.image_url
+      data.google_container_registry_image.frontend-image
     ]
   }
 
