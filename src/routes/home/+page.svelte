@@ -91,7 +91,7 @@
             </TableHead>
             <TableBody tableBodyClass="divide-y">
                 <TableBodyRow>
-                    <TableBodyCell>Leiria Esports"</TableBodyCell>
+                    <TableBodyCell>Leiria Esports</TableBodyCell>
                     <TableBodyCell>Maceira</TableBodyCell>
                     <TableBodyCell>CS:GO</TableBodyCell>
                     <TableBodyCell>17/05/2020</TableBodyCell>
@@ -105,7 +105,7 @@
                     </TableBodyCell>
                 </TableBodyRow>
                 <TableBodyRow>
-                    <TableBodyCell>Lisboa Esports"</TableBodyCell>
+                    <TableBodyCell>Lisboa Esports</TableBodyCell>
                     <TableBodyCell>Maceira</TableBodyCell>
                     <TableBodyCell>CS:GO</TableBodyCell>
                     <TableBodyCell>10/05/2020</TableBodyCell>
@@ -119,7 +119,7 @@
                     </TableBodyCell>
                 </TableBodyRow>
                 <TableBodyRow>
-                    <TableBodyCell>Porto Esports"</TableBodyCell>
+                    <TableBodyCell>Porto Esports</TableBodyCell>
                     <TableBodyCell>Maceira</TableBodyCell>
                     <TableBodyCell>CS:GO</TableBodyCell>
                     <TableBodyCell>25/05/2020</TableBodyCell>
