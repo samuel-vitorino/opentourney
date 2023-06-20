@@ -44,6 +44,8 @@
 
     let user: User;
 
+    
+    
     $: if ($userData.loggedIn) {
         fetch(`${PUBLIC_API_URL}/users/${$userData.id}`)
             .then((res) => {
@@ -56,6 +58,7 @@
                 user = data !== null ? data.user : data;
             });
     }
+    
 </script>
 
 <div class="flex flex-col w-full shadow-md">
