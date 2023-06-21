@@ -57,6 +57,8 @@
             .then((data) => {
                 user = data !== null ? data.user : data;
             });
+            console.log("teste");
+            
     }
     
 </script>

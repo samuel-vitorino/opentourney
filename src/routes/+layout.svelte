@@ -44,7 +44,7 @@
     })
       .then((response) => {
         if (response.ok) {
-          toast.push("Successfully signed out!", {
+          toast.push("A team can't have more than 5 members!", {
             theme: {
               "--toastColor": "mintcream",
               "--toastBackground": "rgb(72,187,120)",

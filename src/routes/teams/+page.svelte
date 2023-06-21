@@ -14,18 +14,62 @@
   import { PUBLIC_API_URL } from "$env/static/public";
   import { goto } from "$app/navigation";
 
+  function isNumber(value?: string | number): boolean {
+    return value != null && value !== "" && !isNaN(Number(value.toString()));
+  }
+
+  interface Team {
+    name: string;
+    owner: string;
+    avatar: string;
+    ownername: string;
+  }
+
+  // list of teams
+  let teams: Team[] = [];
+
+  // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
+  console.log(`$userData.role = ${$userData.role}`);
+
+  $: if ($userData.loggedIn) {
+    console.log($userData.id);
+    let url =
+      `${PUBLIC_API_URL}/` +
+      ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
+    fetch(`${url}`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
+      .then((data) => {
+        console.log(data);
+        teams = data !== null ? data.teams : data;
+      });
+  }
+
+  // // Now fetch the API to get the user that created the team using the owner ID from the team and update the teams array with the user's name, the URL is /users/:id
+  // teams.forEach((team) => {
+  //   fetch(`${PUBLIC_API_URL}/users/${team.owner}`)
+  //     .then((res) => {
+  //       if (res.ok) {
+  //         return res.json();
+  //       }
+  //       return null;
+  //     })
+  //     .then((data) => {
+  //       team.owner = data !== null ? data.user.name : data.user.name;
+  //     });
+  // });
+  // console.log(teams);
+
   let searchTerm = "";
-  let items = [
-    { id: 1, maker: "Toyota", type: "ABC", make: 2017 },
-    { id: 2, maker: "Ford", type: "CDE", make: 2018 },
-    { id: 3, maker: "Volvo", type: "FGH", make: 2019 },
-    { id: 4, maker: "Saab", type: "IJK", make: 2020 },
-  ];
   let buttonPositionStyle = "";
 
   const sortKey = writable("id"); // default sort key
   const sortDirection = writable(1); // default sort direction (ascending)
-  const sortItems = writable(items.slice()); // make a copy of the items array
+  const sortItems = writable(teams.slice()); // make a copy of the items array
 
   // Define a function to sort the items
   const sortTable = (key) => {
@@ -38,9 +82,9 @@
     }
   };
 
-  $: filteredItems = items.filter(
-    (item) => item.maker.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
-  );
+  $: filteredTeams = teams.filter((team) => {
+    return team.name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   $: {
     const key = $sortKey;
@@ -57,29 +101,6 @@
     });
     sortItems.set(sorted);
   }
-
-  interface Team {
-    name: string;
-    owner: string;
-    avatar: string;
-  }
-
-  let team: Team;
-
-  // $: if ($userData.loggedIn) {
-  // console.log(`user: ${$userData.id}`);
-  //   fetch(`${PUBLIC_API_URL}/teams/${$userData.id}`)
-  //     .then((res) => {
-  //         if (res.ok) {
-  //             return res.json();
-  //         }
-  //         return null;
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //         team = data !== null ? data.user : data;
-  //     });
-  // }
 
   onMount(() => {
     // Calculate the scroll height of the page to determine if the button should be fixed at the bottom or not
@@ -103,30 +124,32 @@
     >
       <TableHead>
         <TableHeadCell on:click={() => sortTable("id")}>ID</TableHeadCell>
-        <TableHeadCell on:click={() => sortTable("maker")}>Maker</TableHeadCell>
-        <TableHeadCell on:click={() => sortTable("type")}>Type</TableHeadCell>
-        <TableHeadCell on:click={() => sortTable("make")}>Make</TableHeadCell>
+        <TableHeadCell on:click={() => sortTable("name")}>Name</TableHeadCell>
+        <TableHeadCell on:click={() => sortTable("owner")}>Owner</TableHeadCell>
+        <!-- <TableHeadCell on:click={() => sortTable("make")}>Make</TableHeadCell> -->
         <TableHeadCell>
           <span class="sr-only"> Edit </span>
         </TableHeadCell>
       </TableHead>
       <TableBody class="divide-y">
-        {#each filteredItems as item}
-          <TableBodyRow>
-            <TableBodyCell>{item.id}</TableBodyCell>
-            <TableBodyCell>{item.maker}</TableBodyCell>
-            <TableBodyCell>{item.type}</TableBodyCell>
-            <TableBodyCell>{item.make}</TableBodyCell>
-            <TableBodyCell>
-              <a
-                href="/tables"
-                class="font-medium text-primary-600 hover:underline dark:text-primary-500"
-              >
-                Edit
-              </a>
-            </TableBodyCell>
-          </TableBodyRow>
-        {/each}
+        {#if filteredTeams.length > 0 && isNumber(filteredTeams[0].owner)}
+          {#each filteredTeams as team}
+            <TableBodyRow>
+              <TableBodyCell>{team.id}</TableBodyCell>
+              <TableBodyCell>{team.name}</TableBodyCell>
+              <TableBodyCell>{team.ownername}</TableBodyCell>
+              <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
+              <TableBodyCell>
+                <a
+                  href="/tables"
+                  class="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                >
+                  Edit
+                </a>
+              </TableBodyCell>
+            </TableBodyRow>
+          {/each}
+        {/if}
       </TableBody>
     </TableSearch>
 
