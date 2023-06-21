@@ -1,0 +1,10 @@
+#tournamentBackground {
+    background-image: url('/images/tournament_placeholder.jpg');
+    background-size: cover;
+}
+
+#tournamentOverlay {
+    backdrop-filter: blur(3px);
+    background: rgb(0,0,0);
+    background: linear-gradient(20deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.85) 30%, rgba(0,0,0,0) 60%,  rgba(0,0,0,0) 100%);
+}
