@@ -15,8 +15,17 @@
     TableBodyRow,
     TableHead,
     TableHeadCell,
+    Popover,
   } from "flowbite-svelte";
-  import { ArrowRightIcon } from "svelte-feather-icons";
+  import {
+    ArrowRightIcon,
+    AwardIcon,
+    MapIcon,
+    StarIcon,
+    Trash2Icon,
+    TrashIcon,
+    XIcon,
+  } from "svelte-feather-icons";
   import { userData } from "@src/stores/user";
   import { onMount } from "svelte";
   import { each } from "svelte/internal";
@@ -40,6 +49,7 @@
   let currentTeamMembers = [];
   let teamLength = 0;
   let selectedOwner = "";
+  let teamIsFull = false;
 
   function handleSetAsTeamOwner(teamMember) {
     return () => {
@@ -62,16 +72,25 @@
       });
       return;
     }
-    currentTeamMembers.push(user);
+    currentTeamMembers = [...currentTeamMembers, user];
     teamLength += 1;
-    console.log(teamLength);
+
+    if (teamLength == 5) {
+      teamIsFull = true;
+    }
   };
 
   const handleRemoveTeamMember = (user) => {
-    owner = 0;
-    selectedOwner = "";
+    if (user.id === owner) {
+      owner = 0;
+      selectedOwner = "";
+    }
+
     currentTeamMembers = currentTeamMembers.filter((u) => u !== user);
     teamLength -= 1;
+    if (teamLength < 5) {
+      teamIsFull = false;
+    }
   };
 
   const handleAvatarChange = (e: Event) => {
@@ -99,7 +118,7 @@
         return null;
       })
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         // teams = data !== null ? data.teams : data;
         users = data !== null ? data.users : data;
       });
@@ -130,8 +149,6 @@
         showingAlert = false;
       }, 4000);
 
-      // const result = await response.json();
-      // console.log(result);
     } catch (error) {
       showingAlert = true;
       isSuccess = false;
@@ -145,59 +162,116 @@
 <div class="flex flex-col w-full shadow-md">
   <div class="box-content p-4">
     <P size="4xl" weight="bold">Create new Team</P>
-
     <div>
       <form class="flex flex-col" on:submit={handleSubmit}>
-        <div class="flex justify-between">
-          <div class="grow mr-4">
-            <div class="flex flex-col items-center">
-              <Avatar
-                id="avatar-menu"
-                class="w-[150px] h-[150px] rounded-sm mb-2"
-                src={previewImage !== null ? previewImage : avatar ?? ""}
-              />
-              <Fileupload
-                bind:files={files_to_upload}
-                accept="image/jpeg, image/png"
-                on:change={handleAvatarChange}
-                {...fileuploadprops}
-              />
-            </div>
-            <div class="mb-6">
-              <Label for="first_name" class="mb-2">Name</Label>
-              <Input
-                type="text"
-                id="name"
-                placeholder="Team Name"
-                required
-                bind:value={name}
-              />
-            </div>
-            <div class="mb-3">
-              <Label for="first_name" class="mb-2">Owner</Label>
-              {#if $userData.role == 0}
-                <Input
-                  type="text"
-                  id="name"
-                  placeholder="Team Name"
-                  disabled
-                  required
-                  bind:value={$userData.name}
+        <div class="flex flex-row justify-center items-center mt-16 mb-10">
+          <!-- <div class="flex flex-col items-center">
+                <Avatar
+                  id="avatar-menu"
+                  class="w-[150px] h-[150px] rounded-sm mb-2"
+                  src={previewImage !== null ? previewImage : avatar ?? ""}
                 />
-              {:else}
-                <Input
-                  type="text"
-                  id="name"
-                  disabled
-                  placeholder="Owner"
-                  required
-                  bind:value={selectedOwner}
+                <Fileupload
+                  bind:files={files_to_upload}
+                  accept="image/jpeg, image/png"
+                  on:change={handleAvatarChange}
+                  {...fileuploadprops}
                 />
-              {/if}
+              </div> -->
+          {#if teamLength != 0}
+            {#each currentTeamMembers as teamMember}
+              <div class="relative mb-2 mx-2 text-center dark:text-white">
+                <button
+                  type="button"
+                  on:click={handleSetAsTeamOwner(teamMember)}
+                >
+                  <Avatar
+                    id="avatar-menu"
+                    class="w-[100px] h-[100px] cursor-pointer"
+                    src={teamMember.avatar ?? avatar}
+                  />
+                </button>
+                {#if owner === teamMember.id}
+                  <P
+                    size="xl"
+                    color="text-white"
+                    align="center"
+                    class="flex w-[35px] h-[35px] box-content p-1 absolute -top-2 -right-2 justify-center items-center"
+                    id="owner"
+                  >
+                    <StarIcon class="w-[35px] h-[35px] text-yellow-400 m-0" />
+                  </P>
+                  <Popover
+                    class="w-40 text-sm font-light "
+                    title="Team Owner"
+                    triggeredBy="#owner"
+                    placement="right"
+                  >
+                    {teamMember.email}
+                  </Popover>
+                {/if}
+
+                {#if owner === teamMember.id}
+                  <div class="text-base font-semibold mb-2 text-yellow-400">
+                    {teamMember.name}
+                  </div>
+                {:else}
+                  <div class="text-base font-semibold mb-2">
+                    {teamMember.name}
+                  </div>
+                {/if}
+                <button
+                  type="button"
+                  on:click={handleRemoveTeamMember(teamMember)}
+                >
+                  <Trash2Icon
+                    size="20"
+                    class="m-auto text-gray-500 hover:text-red-600"
+                  />
+                </button>
+              </div>
+            {/each}
+          {:else}
+            <div class="h-[10.75rem] flex justify-center">
+              <P size="xl" weight="bold" class="text-center m-auto">
+                No team members yet
+              </P>
             </div>
-          </div>
-          <Button class="self-end" type="submit">Create</Button>
+          {/if}
         </div>
+        <div class="mb-6">
+          <Label for="first_name" class="mb-2">Name</Label>
+          <Input
+            type="text"
+            id="name"
+            placeholder="Team Name"
+            required
+            bind:value={name}
+          />
+        </div>
+        <!-- <div class="mb-3">
+          <Label for="first_name" class="mb-2">Owner</Label>
+          {#if $userData.role == 0}
+            <Input
+              type="text"
+              id="name"
+              placeholder="Team Name"
+              disabled
+              required
+              bind:value={$userData.name}
+            />
+          {:else}
+            <Input
+              type="text"
+              id="name"
+              disabled
+              placeholder="Owner"
+              required
+              bind:value={selectedOwner}
+            />
+          {/if}
+        </div> -->
+        <Button class="self-end" type="submit">Create</Button>
       </form>
 
       <form class="flex gap-2" id="example-form" on:submit={submitted}>
@@ -369,7 +443,7 @@
           </div>
         </div>
       {/if}
-      {#if teamLength != 0}
+      <!-- {#if teamLength != 0}
         <Table hoverable={true}>
           <TableHead>
             <TableHeadCell>Avatar</TableHeadCell>
@@ -413,7 +487,7 @@
             {/each}
           </TableBody>
         </Table>
-      {/if}
+      {/if} -->
     </div>
   </div>
 </div>
