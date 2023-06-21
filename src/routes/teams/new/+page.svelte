@@ -47,7 +47,7 @@
   let showingAlert = false;
   let isSuccess = false;
   let searchForUsersInput = "";
-  let currentTeamMembers = [];
+  let members: number[];
   let teamLength = 0;
   let selectedOwner = "";
   let teamIsFull = false;
@@ -60,7 +60,7 @@
   }
 
   const handleAddTeamMember = (user) => {
-    if (currentTeamMembers.includes(user)) {
+    if (members.includes(user)) {
       return;
     }
     if (teamLength >= 5) {
@@ -73,7 +73,7 @@
       });
       return;
     }
-    currentTeamMembers = [...currentTeamMembers, user];
+    members = [...members, user];
     teamLength += 1;
 
     if (teamLength == 5) {
@@ -87,7 +87,7 @@
       selectedOwner = "";
     }
 
-    currentTeamMembers = currentTeamMembers.filter((u) => u !== user);
+    members = members.filter((u) => u !== user);
     teamLength -= 1;
     if (teamLength < 5) {
       teamIsFull = false;
@@ -163,7 +163,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ team: { owner, name, avatar } }),
+        body: JSON.stringify({ team: { owner, name, avatar, members } }),
       });
 
       if (response.ok) {
@@ -209,7 +209,7 @@
                 />
               </div> -->
         {#if teamLength != 0}
-          {#each currentTeamMembers as teamMember}
+          {#each members as teamMember}
             <div class="relative mb-2 mx-2 text-center dark:text-white">
               <button type="button" on:click={handleSetAsTeamOwner(teamMember)}>
                 <Avatar
@@ -366,7 +366,9 @@
       {/if}
 
       {#if filteredUsers != null}
-        <div class="relative p-4 my-4 max-h-96 overflow-auto shadow-md sm:rounded-lg">
+        <div
+          class="relative p-4 my-4 max-h-96 overflow-auto shadow-md sm:rounded-lg"
+        >
           <table
             class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
           >
@@ -383,7 +385,7 @@
               {#each filteredUsers as user}
                 <tr
                   class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                  >
+                >
                   <th
                     scope="row"
                     class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
@@ -432,7 +434,7 @@
             </TableHeadCell>
           </TableHead>
           <TableBody class="divide-y">
-            {#each currentTeamMembers as teamMember}
+            {#each members as teamMember}
               <TableBodyRow>
                 <TableBodyCell
                   ><Avatar

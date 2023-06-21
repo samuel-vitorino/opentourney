@@ -138,7 +138,7 @@
   let showingAlert = false;
   let isSuccess = false;
   let searchForUsersInput = "";
-  let currentTeamMembers = [];
+  let members = [];
   let teamLength = 0;
   let selectedOwner = "";
   let teamIsFull = false;
@@ -151,7 +151,7 @@
   }
 
   const handleAddTeamMember = (user) => {
-    if (currentTeamMembers.includes(user)) {
+    if (members.includes(user)) {
       return;
     }
     if (teamLength >= 5) {
@@ -164,7 +164,7 @@
       });
       return;
     }
-    currentTeamMembers = [...currentTeamMembers, user];
+    members = [...members, user];
     teamLength += 1;
 
     if (teamLength == 5) {
@@ -178,7 +178,7 @@
       selectedOwner = "";
     }
 
-    currentTeamMembers = currentTeamMembers.filter((u) => u !== user);
+    members = members.filter((u) => u !== user);
     teamLength -= 1;
     if (teamLength < 5) {
       teamIsFull = false;
@@ -246,7 +246,6 @@
 
   async function handleSubmit(event) {
     event.preventDefault();
-    console.log(event);
 
     try {
       const response = await fetch(`${PUBLIC_API_URL}/teams`, {
@@ -254,7 +253,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ team: { owner, name, avatar } }),
+        body: JSON.stringify({ team: { owner, name, avatar, members } }),
       });
 
       if (response.ok) {
@@ -356,7 +355,7 @@
                     />
                   </div> -->
             {#if teamLength != 0}
-              {#each currentTeamMembers as teamMember}
+              {#each members as teamMember}
                 <div class="relative mb-2 mx-2 text-center dark:text-white">
                   <button
                     type="button"
@@ -557,7 +556,7 @@
                 </TableHeadCell>
               </TableHead>
               <TableBody class="divide-y">
-                {#each currentTeamMembers as teamMember}
+                {#each members as teamMember}
                   <TableBodyRow>
                     <TableBodyCell
                       ><Avatar
