@@ -14,7 +14,11 @@ declare global {
 			role?: number,
 			steamid?: string,
 			id?: number
-		}
+		}       
+	}
+	
+	declare interface Window {
+		bracketsViewer: any;
 	}
 }
 
