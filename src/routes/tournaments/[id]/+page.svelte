@@ -442,7 +442,7 @@
                     </table>
                 </div>
             </TabItem>
-            <TabItem open>
+            <TabItem>
                 <div slot="title" class="flex items-center gap-2">Matches</div>
                 <div class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center">
                     <div class="flex items-center">
