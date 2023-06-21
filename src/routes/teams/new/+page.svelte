@@ -36,6 +36,7 @@
   };
 
   let users = null;
+  let filteredUsers = null;
 
   let files_to_upload: FileList;
   let previewImage: string | null = null;
@@ -107,7 +108,21 @@
     };
   };
 
-  const submitted = () => {
+  const searchLocal = () => {
+    if (users == null) {
+      return [];
+    }
+    return (filteredUsers = users.filter((user) => {
+      let userName = user.name.toLowerCase();
+      let userEmail = user.email.toLowerCase();
+      return (
+        userName.includes(searchForUsersInput.toLowerCase()) ||
+        userEmail.includes(searchForUsersInput.toLowerCase())
+      );
+    }));
+  };
+
+  const search = () => {
     fetch(`${PUBLIC_API_URL}/users?name=${searchForUsersInput}`, {
       credentials: "include",
     })
@@ -118,14 +133,29 @@
         return null;
       })
       .then((data) => {
-        // console.log(data);
-        // teams = data !== null ? data.teams : data;
         users = data !== null ? data.users : data;
+      });
+  };
+
+  const getAll = () => {
+    fetch(`${PUBLIC_API_URL}/users`, {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
+      .then((data) => {
+        users = data !== null ? data.users : data;
+        filteredUsers = users;
       });
   };
 
   async function handleSubmit(event) {
     event.preventDefault();
+    console.log(event);
 
     try {
       const response = await fetch(`${PUBLIC_API_URL}/teams`, {
@@ -148,7 +178,6 @@
       setTimeout(() => {
         showingAlert = false;
       }, 4000);
-
     } catch (error) {
       showingAlert = true;
       isSuccess = false;
@@ -157,15 +186,16 @@
       }, 4000);
     }
   }
+
+  getAll();
 </script>
 
-<div class="flex flex-col w-full shadow-md">
-  <div class="box-content p-4">
-    <P size="4xl" weight="bold">Create new Team</P>
+<div class="flex flex-col box-content p-4 w-full shadow-md">
+  <P size="4xl" weight="bold" class="text-center">Team Name</P>
+  <form class="flex flex-col grow justify-between" on:submit={handleSubmit}>
     <div>
-      <form class="flex flex-col" on:submit={handleSubmit}>
-        <div class="flex flex-row justify-center items-center mt-16 mb-10">
-          <!-- <div class="flex flex-col items-center">
+      <div class="flex flex-row justify-center items-center mt-16 mb-10">
+        <!-- <div class="flex flex-col items-center">
                 <Avatar
                   id="avatar-menu"
                   class="w-[150px] h-[150px] rounded-sm mb-2"
@@ -178,68 +208,65 @@
                   {...fileuploadprops}
                 />
               </div> -->
-          {#if teamLength != 0}
-            {#each currentTeamMembers as teamMember}
-              <div class="relative mb-2 mx-2 text-center dark:text-white">
-                <button
-                  type="button"
-                  on:click={handleSetAsTeamOwner(teamMember)}
+        {#if teamLength != 0}
+          {#each currentTeamMembers as teamMember}
+            <div class="relative mb-2 mx-2 text-center dark:text-white">
+              <button type="button" on:click={handleSetAsTeamOwner(teamMember)}>
+                <Avatar
+                  id="avatar-menu"
+                  class="w-[100px] h-[100px] cursor-pointer"
+                  src={teamMember.avatar ?? avatar}
+                />
+              </button>
+              {#if owner === teamMember.id}
+                <P
+                  size="xl"
+                  color="text-white"
+                  align="center"
+                  class="flex w-[35px] h-[35px] box-content p-1 absolute -top-2 -right-2 justify-center items-center"
+                  id="owner"
                 >
-                  <Avatar
-                    id="avatar-menu"
-                    class="w-[100px] h-[100px] cursor-pointer"
-                    src={teamMember.avatar ?? avatar}
-                  />
-                </button>
-                {#if owner === teamMember.id}
-                  <P
-                    size="xl"
-                    color="text-white"
-                    align="center"
-                    class="flex w-[35px] h-[35px] box-content p-1 absolute -top-2 -right-2 justify-center items-center"
-                    id="owner"
-                  >
-                    <StarIcon class="w-[35px] h-[35px] text-yellow-400 m-0" />
-                  </P>
-                  <Popover
-                    class="w-40 text-sm font-light "
-                    title="Team Owner"
-                    triggeredBy="#owner"
-                    placement="right"
-                  >
-                    {teamMember.email}
-                  </Popover>
-                {/if}
+                  <StarIcon class="w-[35px] h-[35px] text-yellow-400 m-0" />
+                </P>
+                <Popover
+                  class="w-40 text-sm font-light "
+                  title="Team Owner"
+                  triggeredBy="#owner"
+                  placement="top"
+                >
+                  {teamMember.email}
+                </Popover>
+              {/if}
 
-                {#if owner === teamMember.id}
-                  <div class="text-base font-semibold mb-2 text-yellow-400">
-                    {teamMember.name}
-                  </div>
-                {:else}
-                  <div class="text-base font-semibold mb-2">
-                    {teamMember.name}
-                  </div>
-                {/if}
-                <button
-                  type="button"
-                  on:click={handleRemoveTeamMember(teamMember)}
-                >
-                  <Trash2Icon
-                    size="20"
-                    class="m-auto text-gray-500 hover:text-red-600"
-                  />
-                </button>
-              </div>
-            {/each}
-          {:else}
-            <div class="h-[10.75rem] flex justify-center">
-              <P size="xl" weight="bold" class="text-center m-auto">
-                No team members yet
-              </P>
+              {#if owner === teamMember.id}
+                <div class="text-base font-semibold mb-2 text-yellow-400">
+                  {teamMember.name}
+                </div>
+              {:else}
+                <div class="text-base font-semibold mb-2">
+                  {teamMember.name}
+                </div>
+              {/if}
+              <button
+                type="button"
+                on:click={handleRemoveTeamMember(teamMember)}
+              >
+                <Trash2Icon
+                  size="20"
+                  class="m-auto text-gray-500 hover:text-red-600"
+                />
+              </button>
             </div>
-          {/if}
-        </div>
-        <div class="mb-6">
+          {/each}
+        {:else}
+          <div class="h-[10.75rem] flex justify-center">
+            <P size="xl" weight="bold" class="text-center m-auto">
+              No team members yet
+            </P>
+          </div>
+        {/if}
+      </div>
+      <!-- <div class="mb-6">
           <Label for="first_name" class="mb-2">Name</Label>
           <Input
             type="text"
@@ -248,8 +275,8 @@
             required
             bind:value={name}
           />
-        </div>
-        <!-- <div class="mb-3">
+        </div> -->
+      <!-- <div class="mb-3">
           <Label for="first_name" class="mb-2">Owner</Label>
           {#if $userData.role == 0}
             <Input
@@ -271,12 +298,16 @@
             />
           {/if}
         </div> -->
-        <Button class="self-end" type="submit">Create</Button>
-      </form>
 
-      <form class="flex gap-2" id="example-form" on:submit={submitted}>
-        <Search size="md" bind:value={searchForUsersInput} />
-        <Button class="!p-2.5" type="submit">
+      <div class="flex gap-2">
+        <Search
+          size="md"
+          bind:value={searchForUsersInput}
+          on:input={searchLocal}
+          on:keydown={(event) =>
+            event.key === "Enter" && event.preventDefault()}
+        />
+        <Button class="!p-2.5" type="button" on:click={searchLocal}>
           <svg
             class="w-5 h-5"
             fill="none"
@@ -291,7 +322,7 @@
             /></svg
           >
         </Button>
-      </form>
+      </div>
       {#if showingAlert}
         {#if isSuccess}
           <Alert color="green" class="alert {showingAlert ? 'show' : 'hidden'}">
@@ -334,113 +365,60 @@
         {/if}
       {/if}
 
-      {#if users != null}
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-          <div
-            class="flex items-center justify-between pb-4 bg-white dark:bg-gray-900"
+      {#if filteredUsers != null}
+        <div class="relative p-4 my-4 max-h-96 overflow-auto shadow-md sm:rounded-lg">
+          <table
+            class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
           >
-            <div>
-              <div
-                id="dropdownAction"
-                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
-              >
-                <ul
-                  class="py-1 text-sm text-gray-700 dark:text-gray-200"
-                  aria-labelledby="dropdownActionButton"
-                >
-                  <li>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >Reward</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >Promote</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                      >Activate account</a
-                    >
-                  </li>
-                </ul>
-                <div class="py-1">
-                  <a
-                    href="#"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                    >Delete User</a
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="relative overflow-x-auto max-h-80 shadow-md sm:rounded-lg"
-          >
-            <table
-              class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+            <thead
+              class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
             >
-              <thead
-                class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
-              >
-                <tr>
-                  <th scope="col" class="p-4">
-                    <div class="flex items-center" />
-                  </th>
-                  <th scope="col" class="px-6 py-3"> Name </th>
-                  <th scope="col" class="px-6 py-3"> Status </th>
-                  <th scope="col" class="px-6 py-3"> Action </th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each users as user}
-                  <tr
-                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+              <tr>
+                <th scope="col" class="px-6 py-3"> Name </th>
+                <th scope="col" class="px-6 py-3"> Status </th>
+                <th scope="col" class="px-6 py-3"> Action </th>
+              </tr>
+            </thead>
+            <tbody class="overflow-auto">
+              {#each filteredUsers as user}
+                <tr
+                  class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
-                    <td class="w-4 p-4">
-                      <div class="flex items-center" />
-                    </td>
-                    <th
-                      scope="row"
-                      class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                    >
-                      <Avatar
-                        id="avatar-menu"
-                        class="cursor-pointer"
-                        src={user.avatar ?? ""}
-                      />
-                      <div class="pl-3">
-                        <div class="text-base font-semibold">{user.name}</div>
-                        <div class="font-normal text-gray-500">
-                          {user.email}
-                        </div>
+                  <th
+                    scope="row"
+                    class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
+                  >
+                    <Avatar
+                      id="avatar-menu"
+                      class="cursor-pointer"
+                      src={user.avatar ?? ""}
+                    />
+                    <div class="pl-3">
+                      <div class="text-base font-semibold">{user.name}</div>
+                      <div class="font-normal text-gray-500">
+                        {user.email}
                       </div>
-                    </th>
+                    </div>
+                  </th>
 
-                    <td class="px-6 py-4">
-                      <div class="flex items-center">
-                        <div
-                          class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"
-                        />
-                        Online
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <Button color="light" on:click={handleAddTeamMember(user)}
-                        >Add Player</Button
-                      >
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center">
+                      <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2" />
+                      Online
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <Button
+                      type="button"
+                      color="light"
+                      on:click={handleAddTeamMember(user)}
+                      bind:disabled={teamIsFull}>Add Player</Button
+                    >
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
         </div>
       {/if}
       <!-- {#if teamLength != 0}
@@ -489,5 +467,6 @@
         </Table>
       {/if} -->
     </div>
-  </div>
+    <Button class="mt-4 mx-auto" type="submit">Create</Button>
+  </form>
 </div>

@@ -25,7 +25,7 @@
     SidebarWrapper,
   } from "flowbite-svelte";
   let spanClass = "flex-1 ml-3 whitespace-nowrap";
-  $: activeUrl = $page.url.pathname
+  $: activeUrl = $page.url.pathname;
 
   function handleClick() {
     goto("/login");
@@ -71,13 +71,22 @@
   }
 </script>
 
-<Navbar let:hidden let:toggle class="route-background-transparent dark:bg-gray-900" color="gray">
+<Navbar
+  let:hidden
+  let:toggle
+  class="route-background-transparent dark:bg-gray-900"
+  color="gray"
+>
   <NavBrand href={$userData.loggedIn ? "/home" : "/"}>
     <img src="/favicon.png" class="mr-3 h-10 sm:h-10" alt="OpenTourney Logo" />
   </NavBrand>
   {#if $userData.loggedIn}
     <div class="flex items-center md:order-2">
-      <Avatar id="avatar-menu" class="cursor-pointer" src={$userData.avatar ?? ""} />
+      <Avatar
+        id="avatar-menu"
+        class="cursor-pointer"
+        src={$userData.avatar ?? ""}
+      />
     </div>
     <Dropdown placement="bottom" triggeredBy="#avatar-menu">
       <DropdownHeader>
@@ -110,7 +119,11 @@
       <Sidebar>
         <SidebarWrapper class="h-full dark:bg-gray-900">
           <SidebarGroup>
-            <SidebarItem label="Home" active={activeUrl == '/home'} href="/home">
+            <SidebarItem
+              label="Home"
+              active={activeUrl == "/home"}
+              href="/home"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +144,12 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Tournaments" active={activeUrl == '/tournaments'} href="/tournaments" {spanClass}>
+            <SidebarItem
+              label="Tournaments"
+              active={activeUrl == "/tournaments"}
+              href="/tournaments"
+              {spanClass}
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -148,7 +166,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Teams" active={activeUrl == '/teams'} href="/teams">
+            <SidebarItem
+              label="Teams"
+              active={activeUrl == "/teams"}
+              href="/teams"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -165,7 +187,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Inbox" {spanClass}>
+            <SidebarItem
+              label="Inbox"
+              active={activeUrl == "/inbox"}
+              href="/inbox"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -190,7 +216,11 @@
             </SidebarItem>
           </SidebarGroup>
           <SidebarGroup border>
-            <SidebarItem label="Documentation">
+            <SidebarItem
+              label="Documentation"
+              active={activeUrl == "/documentation"}
+              href="/documentation"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -207,7 +237,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Help">
+            <SidebarItem
+              label="Help"
+              active={activeUrl == "/help"}
+              href="/help"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -228,7 +262,7 @@
         </SidebarWrapper>
       </Sidebar>
     {/if}
-    <slot/>
+    <slot />
   </div>
 </div>
 
