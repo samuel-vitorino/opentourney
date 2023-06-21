@@ -132,7 +132,7 @@
   let files_to_upload: FileList;
   let previewImage: string | null = null;
 
-  let owner = 0;
+  let owner = null;
   let name = "";
   let avatar: string | null = null;
   let showingAlert = false;
@@ -145,7 +145,7 @@
 
   function handleSetAsTeamOwner(teamMember) {
     return () => {
-      owner = teamMember.id;
+      owner = teamMember;
       selectedOwner = teamMember.name;
     };
   }
@@ -173,8 +173,8 @@
   };
 
   const handleRemoveTeamMember = (user) => {
-    if (user.id === owner) {
-      owner = 0;
+    if (user.id === owner.id) {
+      owner = null;
       selectedOwner = "";
     }
 
@@ -367,7 +367,7 @@
                       src={teamMember.avatar ?? avatar}
                     />
                   </button>
-                  {#if owner === teamMember.id}
+                  {#if owner && owner.id === teamMember.id}
                     <P
                       size="xl"
                       color="text-white"
@@ -387,7 +387,7 @@
                     </Popover>
                   {/if}
 
-                  {#if owner === teamMember.id}
+                  {#if owner && owner.id === teamMember.id}
                     <div class="text-base font-semibold mb-2 text-yellow-400">
                       {teamMember.name}
                     </div>
