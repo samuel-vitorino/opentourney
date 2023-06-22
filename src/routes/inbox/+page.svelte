@@ -9,16 +9,12 @@
         TableBody,
         TableBodyCell,
         TableBodyRow,
-        TableHead,
-        TableHeadCell,
         Search,
         Button,
         Badge,
     } from "flowbite-svelte";
     import {
         CheckIcon,
-        CropIcon,
-        FastForwardIcon,
         XIcon,
     } from "svelte-feather-icons";
 
@@ -133,12 +129,6 @@
             </div>
 
             <Table shadow hoverable={true}>
-                <!-- <TableHead>
-                    <TableHeadCell>Status</TableHeadCell>
-                    <TableHeadCell>User</TableHeadCell>
-                    <TableHeadCell>Team</TableHeadCell>
-                    <TableHeadCell>Action</TableHeadCell>
-                </TableHead> -->
                 <TableBody tableBodyClass="divide-y">
                     {#each filteredrequests as item}
                         <TableBodyRow>
