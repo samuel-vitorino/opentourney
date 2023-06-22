@@ -1,12 +1,78 @@
 <script lang="ts">
-    import { P, Tabs, TabItem, Input, Button } from "flowbite-svelte";
+    import { P, Tabs, TabItem, Input, Button, Modal } from "flowbite-svelte";
     import { SendIcon } from "svelte-feather-icons";
     import { BracketsManager } from "brackets-manager";
     import { InMemoryDatabase } from "brackets-memory-db";
-    import { onMount } from "svelte";
+    import { toast } from "@zerodevx/svelte-toast";
     import "brackets-viewer";
     import "@styles/tournament.scss";
     import "@styles/brackets-viewer.min.css";
+    import type { PageData } from "./$types";
+    import { PUBLIC_API_URL } from "$env/static/public";
+    import { userData } from "@src/stores/user";
+
+    export let data: PageData;
+
+    let defaultModal = false;
+
+    const updateStatus = async (id: number, status: number) => {
+        fetch(`${PUBLIC_API_URL}/tournaments/${id}`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                    status: status,
+                },
+            ),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response;
+                }
+                throw new Error();
+            })
+            .then(() => {
+                toast.push(
+                    `Tournament ${
+                        status == 1 ? "started" : "ended"
+                    } successfully!`,
+                    {
+                        theme: {
+                            "--toastColor": "mintcream",
+                            "--toastBackground": "rgb(72,187,120)",
+                            "--toastBarBackground": "#2F855A",
+                        },
+                    }
+                );
+                updateTournament();
+            })
+            .catch((data) => {
+                alert(data);
+            });
+    };
+
+    function addOrdinalSuffix(number: number) {
+        if (typeof number !== "number" || isNaN(number)) {
+            return number;
+        }
+
+        // Check for special cases (11th, 12th, 13th)
+        if (number % 100 >= 11 && number % 100 <= 13) {
+            return number + "th";
+        }
+
+        // Handle general cases
+        switch (number % 10) {
+            case 1:
+                return number + "st";
+            case 2:
+                return number + "nd";
+            case 3:
+                return number + "rd";
+            default:
+                return number + "th";
+        }
+    }
 
     let draw = async () => {
         const storage = new InMemoryDatabase();
@@ -15,9 +81,18 @@
         await manager.create({
             tournamentId: 3,
             name: "Elimination stage",
-            type: "double_elimination",
-            seeding: ["Team 1", "Team 2", "Team 3", "Team 4"],
-            settings: { grandFinal: "double" },
+            type: "round_robin",
+            seeding: [
+                "Team 1",
+                "Team 2",
+                "Team 3",
+                "Team 4",
+                "Team 5",
+                "Team 6",
+                "Team 7",
+                "Team 8",
+            ],
+            settings: { grandFinal: "double", groupCount: 2 },
         });
 
         await manager.update.match({
@@ -40,27 +115,60 @@
     };
 
     interface Tournament {
+        id: number;
         name: string;
-        maxTeams: number;
+        max_teams: number;
+        admin: number;
         avatar: string;
+        organizer: string;
+        information: string;
+        prizes: string[];
+        createdAt: string;
+        status: number;
     }
 
-    let tournament = {} as Tournament;
+    let tournament = data.tournament as Tournament;
+
+    const updateTournament = () => {
+        fetch(`${PUBLIC_API_URL}/tournaments/${tournament.id}`, {
+            credentials: "include",
+        })
+            .then((res) => {
+                if (res.ok) {
+                    return res.json();
+                }
+                return null;
+            })
+            .then((data) => {
+                tournament = data.tournament;
+            });
+    };
 </script>
 
 <div class="flex flex-col w-full shadow-md">
     <div class="box-content p-4">
-        <div class="flex flex-row h-[250px]" id="tournamentBackground">
+        <div
+            class="flex flex-row h-[250px]"
+            id="tournamentBackground"
+            style="background-image: url({`${PUBLIC_API_URL.replace(
+                '/api',
+                '/images'
+            )}/${tournament.avatar}`})"
+        >
             <div
                 class="w-full h-full flex flex-col justify-end bg-"
                 id="tournamentOverlay"
             >
                 <div class="ml-5 mb-5">
                     <P size="xs" weight="extrabold" color="text-gray-300"
-                        >FINISHED</P
+                        >{tournament.status === 0
+                            ? "SCHEDULED"
+                            : tournament.status === 1
+                            ? "ONGOING"
+                            : "FINISHED"}</P
                     >
                     <P size="3xl" color="text-white" weight="semibold"
-                        >IPL Lan Party</P
+                        >{tournament.name}</P
                     >
                     <div class="flex">
                         <P
@@ -70,7 +178,7 @@
                             size="sm">Organized by</P
                         >
                         <P size="sm" weight="semibold" color="text-orange-300"
-                            >IPLeiria</P
+                            >{tournament.organizer}</P
                         >
                     </div>
                 </div>
@@ -194,62 +302,7 @@
                                     </div>
                                 </div>
                                 <P size="2xl" weight="semibold">Information</P>
-                                <P>
-                                    Lorem ipsum dolor sit amet, consectetur
-                                    adipiscing elit, sed do eiusmod tempor
-                                    incididunt ut labore et dolore magna aliqua.
-                                    Ac tincidunt vitae semper quis lectus nulla.
-                                    Lorem dolor sed viverra ipsum nunc aliquet
-                                    bibendum enim facilisis. Ac ut consequat
-                                    semper viverra nam libero justo. Mauris a
-                                    diam maecenas sed enim ut. Aliquet lectus
-                                    proin nibh nisl condimentum id. Scelerisque
-                                    viverra mauris in aliquam sem fringilla ut.
-                                    Pulvinar sapien et ligula ullamcorper
-                                    malesuada proin libero nunc. Sed enim ut sem
-                                    viverra aliquet eget sit amet tellus. Quis
-                                    enim lobortis scelerisque fermentum dui
-                                    faucibus in. Sed elementum tempus egestas
-                                    sed sed risus pretium quam vulputate. Id
-                                    nibh tortor id aliquet lectus proin. Ante in
-                                    nibh mauris cursus mattis molestie a iaculis
-                                    at. Pellentesque dignissim enim sit amet
-                                    venenatis urna cursus eget. Lorem ipsum
-                                    dolor sit amet consectetur adipiscing elit
-                                    pellentesque habitant. Tempor nec feugiat
-                                    nisl pretium fusce. Enim nulla aliquet
-                                    porttitor lacus luctus. Adipiscing elit ut
-                                    aliquam purus sit amet luctus. Nam aliquam
-                                    sem et tortor consequat id porta nibh
-                                    venenatis. Id velit ut tortor pretium
-                                    viverra. Lectus proin nibh nisl condimentum
-                                    id venenatis a condimentum. Mus mauris vitae
-                                    ultricies leo integer. Quis ipsum
-                                    suspendisse ultrices gravida dictum fusce ut
-                                    placerat orci. Est ante in nibh mauris
-                                    cursus mattis molestie a. Eu turpis egestas
-                                    pretium aenean pharetra magna ac placerat
-                                    vestibulum. Tellus in hac habitasse platea
-                                    dictumst. Urna condimentum mattis
-                                    pellentesque id nibh tortor. Mattis
-                                    vulputate enim nulla aliquet porttitor lacus
-                                    luctus accumsan. Elementum tempus egestas
-                                    sed sed risus. Proin sagittis nisl rhoncus
-                                    mattis rhoncus urna neque. Mauris vitae
-                                    ultricies leo integer malesuada nunc. Diam
-                                    maecenas ultricies mi eget mauris pharetra
-                                    et ultrices neque. Eu mi bibendum neque
-                                    egestas congue quisque egestas diam in.
-                                    Pulvinar pellentesque habitant morbi
-                                    tristique senectus. Volutpat ac tincidunt
-                                    vitae semper quis lectus nulla at volutpat.
-                                    In arcu cursus euismod quis viverra nibh
-                                    cras pulvinar mattis. Sit amet commodo nulla
-                                    facilisi. Pulvinar mattis nunc sed blandit
-                                    libero volutpat. Vitae nunc sed velit
-                                    dignissim. A pellentesque sit amet porttitor
-                                    eget dolor morbi non arcu.
-                                </P>
+                                <P>{tournament.information}</P>
                             </div>
                             <div class="ml-2">
                                 <div
@@ -262,7 +315,12 @@
                                         color="text-green-500"
                                         class="ml-1"
                                         weight="extrabold"
-                                        size="sm">FINISHED</P
+                                        size="sm"
+                                        >{tournament.status === 0
+                                            ? "SCHEDULED"
+                                            : tournament.status === 1
+                                            ? "ONGOING"
+                                            : "FINISHED"}</P
                                     >
                                 </div>
                                 <P weight="bold" class="mt-4 mb-4" size="2xl"
@@ -271,21 +329,52 @@
                                 <div
                                     class="border rounded-sm w-[400px] box-content p-3"
                                 >
-                                    <div class="flex justify-between">
-                                        <P>1st</P>
-                                        <P>100 Dollars plus a t-shirt</P>
-                                    </div>
-                                    <hr class="mt-2 mb-2" />
-                                    <div class="flex justify-between">
-                                        <P>2nd</P>
-                                        <P>100 Dollars plus a t-shirt</P>
-                                    </div>
-                                    <hr class="mt-2 mb-2" />
-                                    <div class="flex justify-between">
-                                        <P>3rd-4th</P>
-                                        <P>100 Dollars plus a t-shirt</P>
-                                    </div>
+                                    {#each tournament.prizes as p, i}
+                                        {#if i <= 2}
+                                            <div class="flex justify-between">
+                                                <P
+                                                    >{`${addOrdinalSuffix(
+                                                        i + 1
+                                                    )}`}</P
+                                                >
+                                                <P>{p}</P>
+                                            </div>
+                                            {#if i != tournament.prizes.length - 1 && i < 2}
+                                                <hr class="mt-2 mb-2" />
+                                            {/if}
+                                        {/if}
+                                    {/each}
                                 </div>
+                                {#if tournament.prizes.length > 3}
+                                    <div class="w-full flex justify-center">
+                                        <button
+                                            type="button"
+                                            on:click={() =>
+                                                (defaultModal = true)}
+                                            class="btn btn-primary mt-2"
+                                            >Show all</button
+                                        >
+                                    </div>
+                                {/if}
+                                {#if tournament.admin == $userData.id}
+                                    {#if tournament.status == 0}
+                                        <Button
+                                            class="mt-5 w-full"
+                                            color="green"
+                                            on:click={() =>
+                                                updateStatus(tournament.id, 1)}
+                                            >Start Tournament</Button
+                                        >
+                                    {:else if tournament.status == 1}
+                                        <Button
+                                            class="mt-5 w-full"
+                                            color="red"
+                                            on:click={() =>
+                                                updateStatus(tournament.id, 2)}
+                                            >End Tournament</Button
+                                        >
+                                    {/if}
+                                {/if}
                             </div>
                         </div>
                     </div>
@@ -321,7 +410,9 @@
                     </div>
                 </div>
 
-                <div class="relative overflow-x-auto shadow-md sm:rounded-lg box-content p-3 bg-white">
+                <div
+                    class="relative overflow-x-auto shadow-md sm:rounded-lg box-content p-3 bg-white"
+                >
                     <div
                         class="flex items-center justify-between pb-4 bg-white dark:bg-gray-900"
                     >
@@ -347,7 +438,7 @@
                                 type="text"
                                 id="table-search-users"
                                 class="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="Search for users"
+                                placeholder="Search for teams"
                             />
                         </div>
                     </div>
@@ -444,7 +535,9 @@
             </TabItem>
             <TabItem>
                 <div slot="title" class="flex items-center gap-2">Matches</div>
-                <div class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center">
+                <div
+                    class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
+                >
                     <div class="flex items-center">
                         <P class="mr-2" size="sm">Team Pedro</P>
                         <img
@@ -453,11 +546,20 @@
                             alt="Jese"
                         />
                     </div>
-                    <div class="flex flex-col"> 
-                        <P class="text-center mb-1" size="xs" weight="semibold">FINISHED</P>
-                        <P class="text-center mb-2" size="xs">SAT 13 MAY, 18:15</P>
+                    <div class="flex flex-col">
+                        <P class="text-center mb-1" size="xs" weight="semibold"
+                            >FINISHED</P
+                        >
+                        <P class="text-center mb-2" size="xs"
+                            >SAT 13 MAY, 18:15</P
+                        >
                         <div class="flex justify-center">
-                            <P size="2xl" class="mr-1" color="text-green-500" weight="semibold">2</P>
+                            <P
+                                size="2xl"
+                                class="mr-1"
+                                color="text-green-500"
+                                weight="semibold">2</P
+                            >
                             <P size="2xl" class="mr-1" weight="semibold">-</P>
                             <P size="2xl" weight="semibold">0</P>
                         </div>
@@ -471,7 +573,9 @@
                         <P class="ml-2" size="sm">Team Tomas</P>
                     </div>
                 </div>
-                <div class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center">
+                <div
+                    class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
+                >
                     <div class="flex items-center">
                         <P class="mr-2" size="sm">Team Pedro</P>
                         <img
@@ -480,11 +584,20 @@
                             alt="Jese"
                         />
                     </div>
-                    <div class="flex flex-col"> 
-                        <P class="text-center mb-1" size="xs" weight="semibold">FINISHED</P>
-                        <P class="text-center mb-2" size="xs">SAT 13 MAY, 18:15</P>
+                    <div class="flex flex-col">
+                        <P class="text-center mb-1" size="xs" weight="semibold"
+                            >FINISHED</P
+                        >
+                        <P class="text-center mb-2" size="xs"
+                            >SAT 13 MAY, 18:15</P
+                        >
                         <div class="flex justify-center">
-                            <P size="2xl" class="mr-1" color="text-green-500" weight="semibold">2</P>
+                            <P
+                                size="2xl"
+                                class="mr-1"
+                                color="text-green-500"
+                                weight="semibold">2</P
+                            >
                             <P size="2xl" class="mr-1" weight="semibold">-</P>
                             <P size="2xl" weight="semibold">0</P>
                         </div>
@@ -498,7 +611,9 @@
                         <P class="ml-2" size="sm">Team Tomas</P>
                     </div>
                 </div>
-                <div class="h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center">
+                <div
+                    class="h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
+                >
                     <div class="flex items-center">
                         <P class="mr-2" size="sm">Team Pedro</P>
                         <img
@@ -507,11 +622,20 @@
                             alt="Jese"
                         />
                     </div>
-                    <div class="flex flex-col"> 
-                        <P class="text-center mb-1" size="xs" weight="semibold">FINISHED</P>
-                        <P class="text-center mb-2" size="xs">SAT 13 MAY, 18:15</P>
+                    <div class="flex flex-col">
+                        <P class="text-center mb-1" size="xs" weight="semibold"
+                            >FINISHED</P
+                        >
+                        <P class="text-center mb-2" size="xs"
+                            >SAT 13 MAY, 18:15</P
+                        >
                         <div class="flex justify-center">
-                            <P size="2xl" class="mr-1" color="text-green-500" weight="semibold">2</P>
+                            <P
+                                size="2xl"
+                                class="mr-1"
+                                color="text-green-500"
+                                weight="semibold">2</P
+                            >
                             <P size="2xl" class="mr-1" weight="semibold">-</P>
                             <P size="2xl" weight="semibold">0</P>
                         </div>
@@ -527,5 +651,18 @@
                 </div>
             </TabItem>
         </Tabs>
+        <Modal title="Prizes" bind:open={defaultModal} autoclose>
+            <div class="w-[250px]">
+                {#each tournament.prizes as p, i}
+                    <div class="flex justify-between">
+                        <P>{`${addOrdinalSuffix(i + 1)}`}</P>
+                        <P>{p}</P>
+                    </div>
+                    {#if i != tournament.prizes.length - 1}
+                        <hr class="mt-2 mb-2" />
+                    {/if}
+                {/each}
+            </div>
+        </Modal>
     </div>
 </div>

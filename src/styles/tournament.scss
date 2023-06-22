@@ -1,6 +1,7 @@
 #tournamentBackground {
-    background-image: url('/images/tournament_placeholder.jpg');
-    background-size: cover;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 #tournamentOverlay {
