@@ -379,7 +379,7 @@
       <TableBody>
         {#if filteredTeams.length > 0}
           {#each filteredTeams as team}
-            <TableBodyRow>
+            <TableBodyRow on:click={() => goto(`/teams/${team.id}`)}>
               <TableBodyCell>{team.id}</TableBodyCell>
               <TableBodyCell>{team.name}</TableBodyCell>
               <TableBodyCell>{team.owner.name}</TableBodyCell>
