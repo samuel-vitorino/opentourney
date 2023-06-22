@@ -28,23 +28,28 @@
     return value != null && value !== "" && !isNaN(Number(value.toString()));
   }
 
+  interface User {
+    name: string;
+    email: string;
+    avatar: string;
+  }
   interface Team {
     name: string;
     owner: string;
     avatar: string;
     ownername: string;
+    members: User[];
   }
 
   // list of teams
   let teams: Team[] = [];
 
   let formModal = false;
+  let isEditing = false;
 
   // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
-  console.log(`$userData.role = ${$userData.role}`);
 
   $: if ($userData.loggedIn) {
-    console.log($userData.id);
     let url =
       `${PUBLIC_API_URL}/` +
       ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
@@ -199,6 +204,22 @@
     };
   };
 
+  const handleEditingButtonClick = (team) => {
+    // console.log(team);
+
+    formModal = true;
+    isEditing = true;
+    return () => {
+      owner = team.owner;
+      name = team.name;
+      avatar = team.avatar;
+      // members = team.members;
+      // teamLength = team.members.length;
+      selectedOwner = team.ownerName;
+      teamIsFull = teamLength === 5;
+    };
+  };
+
   const searchLocal = () => {
     if (users == null) {
       return [];
@@ -243,6 +264,19 @@
         filteredUsers = users;
       });
   };
+
+  async function handleCancel(event) {
+    event.preventDefault();
+    owner = 0;
+    name = "";
+    avatar = null;
+    members = [];
+    teamLength = 0;
+    selectedOwner = "";
+    teamIsFull = false;
+    searchForUsersInput = "";
+    formModal = false;
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -305,12 +339,9 @@
               <TableBodyCell>{team.ownername}</TableBodyCell>
               <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
               <TableBodyCell>
-                <a
-                  href="/tables"
-                  class="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                <Button color="light" on:click={handleEditingButtonClick(team)}
+                  >Edit</Button
                 >
-                  Edit
-                </a>
               </TableBodyCell>
             </TableBodyRow>
           {/each}
@@ -591,7 +622,12 @@
             </Table>
           {/if} -->
         </div>
-        <Button class="mt-4 mx-auto" type="submit">Create</Button>
+        <div class="flex">
+          <Button class="mt-4 mx-auto" type="button" on:click={handleCancel}
+            >Cancel</Button
+          >
+          <Button class="mt-4 mx-auto" type="submit">Create</Button>
+        </div>
       </form>
     </Modal>
   </div>
