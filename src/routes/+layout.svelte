@@ -69,6 +69,42 @@
         });
       });
   }
+
+  let requests: Request[] = [];
+
+  enum RequestStatus {
+    Pending = 0,
+    Accepted = 1,
+    Declined = 2,
+  }
+
+  interface Request {
+    id: number;
+    user_id: number;
+    team_id: number;
+    status: RequestStatus;
+  }
+
+  $: if ($userData.loggedIn) {
+    let url =
+      `${PUBLIC_API_URL}/` +
+      ($userData.role === 1 ? "requests" : "requests?user=" + $userData.id);
+    fetch(`${url}`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
+      .then((data) => {
+        console.log(data);
+        requests = data !== null ? data.requests : data;
+      });
+  }
+
+  $: pendingRequests = requests.filter(
+    (request) => request.status === 0
+  ).length;
 </script>
 
 <Navbar
@@ -210,8 +246,9 @@
               <svelte:fragment slot="subtext">
                 <span
                   class="inline-flex justify-center items-center p-3 ml-3 w-3 h-3 text-sm font-medium text-blue-600 bg-blue-200 rounded-full dark:bg-blue-900 dark:text-blue-200"
-                  >3</span
                 >
+                  {pendingRequests}
+                </span>
               </svelte:fragment>
             </SidebarItem>
           </SidebarGroup>

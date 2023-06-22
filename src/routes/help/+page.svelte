@@ -3,4 +3,8 @@
     import { P } from "flowbite-svelte";
 </script>
 
-<P size="5xl">Help</P>
+<div class="flex flex-col w-full shadow-md">
+    <div class="box-content p-4">
+        <P size="5xl">Help</P>
+    </div>
+</div>
