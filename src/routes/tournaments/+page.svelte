@@ -124,7 +124,6 @@
         throw new Error();
       })
       .then(() => {
-        updateTournaments();
         toast.push("Tournament created successfully!", {
           theme: {
             "--toastColor": "mintcream",
@@ -133,6 +132,7 @@
           },
         });
         formModal = false;
+        updateTournaments();
       })
       .catch((data) => {
         alert(data);
