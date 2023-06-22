@@ -65,6 +65,7 @@
       })
       .then((data) => {
         teams = data !== null ? data.teams : data;
+        console.log(teams);
       });
 
     fetch(`${PUBLIC_API_URL}/users?role=${$userData.role}`)
