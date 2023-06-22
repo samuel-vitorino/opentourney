@@ -102,9 +102,9 @@
       });
   }
 
-  $: pendingRequests = requests.filter(
-    (request) => request.status === 0
-  ).length;
+  $: pendingRequests = !requests
+    ? 0
+    : requests.filter((request) => request.status === 0).length;
 </script>
 
 <Navbar

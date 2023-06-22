@@ -13,6 +13,7 @@
         TableHeadCell,
         Search,
         Button,
+        Badge,
     } from "flowbite-svelte";
     import {
         CheckIcon,
@@ -144,41 +145,56 @@
                             <TableBodyCell class="w-0 justify-center">
                                 <div class="flex flex-row text-center m-auto">
                                     {#if item.status === 0}
-                                        <div
-                                            class="m-auto px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100"
+                                        <Badge
+                                            class="m-auto my-2"
+                                            rounded
+                                            color="yellow">Pending</Badge
                                         >
-                                            Pending
-                                        </div>
                                     {:else if item.status === 1}
-                                        <span
-                                            class="m-auto px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100"
+                                        <Badge
+                                            class="m-auto my-2"
+                                            rounded
+                                            color="green">Accepted</Badge
                                         >
-                                            Accepted
-                                        </span>
                                     {:else if item.status === 2}
-                                        <span
-                                            class="m-auto px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-red-700 dark:text-red-100"
+                                        <Badge
+                                            class="m-auto my-2"
+                                            rounded
+                                            color="red">Declined</Badge
                                         >
-                                            Declined
-                                        </span>
                                     {/if}
                                 </div>
                             </TableBodyCell>
 
                             <TableBodyCell class="text-left">
                                 <div class="flex flex-row gap-1">
-                                    <button
-                                        on:click={() => goto("/teams")}
-                                        class="font-bold hover:font-extrabold"
-                                        >{item.teamname}</button
-                                    >
-                                    <div>
-                                        {"has invited"}
-                                    </div>
-                                    <div class="font-bold">{item.username}</div>
-                                    <div>
-                                        {"to join them!"}
-                                    </div>
+                                    {#if $userData}
+                                        {#if $userData.role === 1}
+                                            <button
+                                                on:click={() => goto("/teams")}
+                                                class="font-bold hover:font-extrabold"
+                                                >{item.teamname}</button
+                                            >
+                                            <div>
+                                                {"has invited"}
+                                            </div>
+                                            <div class="font-bold">
+                                                {item.username}
+                                            </div>
+                                            <div>
+                                                {"to join them!"}
+                                            </div>
+                                        {:else}
+                                            <div>
+                                                {"You have been invited to join"}
+                                            </div>
+                                            <button
+                                                on:click={() => goto("/teams")}
+                                                class="font-bold hover:font-extrabold"
+                                                >{item.teamname}!</button
+                                            >
+                                        {/if}
+                                    {/if}
                                 </div>
                             </TableBodyCell>
                             <TableBodyCell>
