@@ -25,13 +25,17 @@
 </script>
 
 <!-- Render documentation sections -->
-<div class="w-max flex flex-col">
-    <P size="5xl">Documentation</P>
+<div class="flex flex-col w-full shadow-md">
+    <div class="box-content p-4">
+        <div class="w-max flex flex-col">
+            <P size="5xl">Documentation</P>
 
-    {#each sections as section}
-        <div class="flex flex-col">
-            <h2>{section.title}</h2>
-            <p>{section.content}</p>
+            {#each sections as section}
+                <div class="flex flex-col">
+                    <h2>{section.title}</h2>
+                    <p>{section.content}</p>
+                </div>
+            {/each}
         </div>
-    {/each}
+    </div>
 </div>

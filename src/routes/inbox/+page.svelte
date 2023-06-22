@@ -138,9 +138,7 @@
                 </TableHead> -->
                 <TableBody tableBodyClass="divide-y">
                     {#each filteredrequests as item}
-                        <TableBodyRow
-                            on:click={() => goto("/teams")}
-                        >
+                        <TableBodyRow on:click={() => goto("/teams")}>
                             <TableBodyCell class="w-0 justify-center">
                                 <div class="flex flex-row text-center m-auto">
                                     {#if item.status === 0}
