@@ -1,6 +1,8 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { PUBLIC_API_URL } from "$env/static/public";
     import { userData } from "@src/stores/user";
+    import { toast } from "@zerodevx/svelte-toast";
     import {
         Heading,
         Table,
@@ -12,9 +14,17 @@
         Search,
         Button,
     } from "flowbite-svelte";
+    import {
+        CheckIcon,
+        CropIcon,
+        FastForwardIcon,
+        XIcon,
+    } from "svelte-feather-icons";
 
     let value = "";
+
     let requests: Request[] = [];
+
     let previewImage: string | null = null;
 
     enum RequestStatus {
@@ -38,11 +48,18 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                status: RequestStatus.Accepted,
+                request: { ...request, status: RequestStatus.Accepted },
             }),
         }).then((res) => {
             if (res.ok) {
-                request.status = RequestStatus.Accepted;
+                toast.push("You declined an invite!", {
+                    theme: {
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgb(72,187,120)",
+                        "--toastBarBackground": "#2F855A",
+                    },
+                });
+                request = { ...request, status: RequestStatus.Accepted };
             }
             return null;
         });
@@ -56,11 +73,18 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                status: RequestStatus.Declined,
+                request: { ...request, status: RequestStatus.Declined },
             }),
         }).then((res) => {
             if (res.ok) {
-                request.status = RequestStatus.Declined;
+                toast.push("You declined an invite!", {
+                    theme: {
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgb(72,187,120)",
+                        "--toastBarBackground": "#2F855A",
+                    },
+                });
+                request = { ...request, status: RequestStatus.Declined };
             }
             return null;
         });
@@ -68,7 +92,8 @@
 
     //TODO FILTER REQUESTS
     $: filteredrequests = requests.filter(
-        (item) => item.status === RequestStatus.Pending
+        // (item) => item.status === RequestStatus.Pending
+        () => true
     );
 
     //get all request for the user (if not admin)
@@ -105,31 +130,77 @@
             </div>
 
             <Table shadow hoverable={true}>
-                <TableHead>
+                <!-- <TableHead>
                     <TableHeadCell>Status</TableHeadCell>
                     <TableHeadCell>User</TableHeadCell>
                     <TableHeadCell>Team</TableHeadCell>
                     <TableHeadCell>Action</TableHeadCell>
-                </TableHead>
+                </TableHead> -->
                 <TableBody tableBodyClass="divide-y">
                     {#each filteredrequests as item}
-                        <TableBodyRow>
-                            <TableBodyCell>{item.status}</TableBodyCell>
-                            <TableBodyCell>{item.user_id}</TableBodyCell>
-                            <TableBodyCell>{item.team_id}</TableBodyCell>
-                            <TableBodyCell>
-                                <Button
-                                    on:click={() => handleAcceptRequest(item)}
-                                    class="font-medium text-green-600 hover:underline dark:text-green-500"
-                                >
-                                    Accept
-                                </Button>
-                                <Button
-                                    on:click={() => handleDeclineRequest(item)}
-                                    class="font-medium text-red-600 hover:underline dark:text-red-500"
-                                >
-                                    Decline
-                                </Button>
+                        <TableBodyRow
+                            on:click={() => goto("/teams")}
+                        >
+                            <TableBodyCell class="w-0 justify-center">
+                                <div class="flex flex-row text-center m-auto">
+                                    {#if item.status === 0}
+                                        <div
+                                            class="m-auto px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100"
+                                        >
+                                            Pending
+                                        </div>
+                                    {:else if item.status === 1}
+                                        <span
+                                            class="m-auto px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100"
+                                        >
+                                            Accepted
+                                        </span>
+                                    {:else if item.status === 2}
+                                        <span
+                                            class="m-auto px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-red-700 dark:text-red-100"
+                                        >
+                                            Declined
+                                        </span>
+                                    {/if}
+                                </div>
+                            </TableBodyCell>
+                            <TableBodyCell class="text-left">
+                                <div>
+                                    {item.team_id +
+                                        " has invited " +
+                                        item.user_id +
+                                        " to join them!"}
+                                </div>
+                            </TableBodyCell>
+                            <!-- <TableBodyCell>{item.user_id}</TableBodyCell>
+                            <TableBodyCell>{item.team_id}</TableBodyCell> -->
+                            <TableBodyCell
+                                class="flex flex-row m-auto content-end gap-2 justify-end"
+                            >
+                                {#if item.status === 0}
+                                    <Button
+                                        size="sm"
+                                        outline
+                                        color="primary"
+                                        bind:disabled={item.status}
+                                        on:click={() =>
+                                            handleAcceptRequest(item)}
+                                        class="font-medium text-green-600 dark:text-green-500 bg-green-200 rounded-full"
+                                    >
+                                        <CheckIcon class="w-5 h-5" />
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        outline
+                                        color="primary"
+                                        bind:disabled={item.status}
+                                        on:click={() =>
+                                            handleDeclineRequest(item)}
+                                        class="font-medium text-red-600 dark:text-red-500 bg-red-200 rounded-full"
+                                    >
+                                        <XIcon class="w-5 h-5" />
+                                    </Button>
+                                {/if}
                             </TableBodyCell>
                         </TableBodyRow>
                     {/each}
