@@ -301,7 +301,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex">
+                                    <div class="flex items-center">
                                         <svg
                                             class="w-[50px] h-[50px]"
                                             viewBox="0 0 76 76"
@@ -399,7 +399,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex">
+                                    <div class="flex items-center">
                                         <svg
                                             class="w-[50px] h-[50px]"
                                             viewBox="0 0 76 76"
