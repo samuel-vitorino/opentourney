@@ -36,6 +36,7 @@
   interface Team {
     name: string;
     owner: string;
+
     avatar: string;
     ownername: string;
     members: User[];
@@ -65,6 +66,18 @@
       .then((data) => {
         teams = data !== null ? data.teams : data;
       });
+
+    fetch(`${PUBLIC_API_URL}/users?role=${$userData.role}`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
+      .then((data) => {
+        users = data !== null ? data.users : data;
+        // filteredUsers = users;
+      });
   }
 
   // // Now fetch the API to get the user that created the team using the owner ID from the team and update the teams array with the user's name, the URL is /users/:id
@@ -85,40 +98,9 @@
   let searchTerm = "";
   let buttonPositionStyle = "";
 
-  const sortKey = writable("id"); // default sort key
-  const sortDirection = writable(1); // default sort direction (ascending)
-  const sortItems = writable(teams.slice()); // make a copy of the items array
-
-  // Define a function to sort the items
-  const sortTable = (key) => {
-    // If the same key is clicked, reverse the sort direction
-    if ($sortKey === key) {
-      sortDirection.update((val) => -val);
-    } else {
-      sortKey.set(key);
-      sortDirection.set(1);
-    }
-  };
-
   $: filteredTeams = teams.filter((team) => {
     return team.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  $: {
-    const key = $sortKey;
-    const direction = $sortDirection;
-    const sorted = [...$sortItems].sort((a, b) => {
-      const aVal = a[key];
-      const bVal = b[key];
-      if (aVal < bVal) {
-        return -direction;
-      } else if (aVal > bVal) {
-        return direction;
-      }
-      return 0;
-    });
-    sortItems.set(sorted);
-  }
 
   onMount(() => {
     // Calculate the scroll height of the page to determine if the button should be fixed at the bottom or not
@@ -133,7 +115,15 @@
   });
 
   let users = null;
-  let filteredUsers = null;
+
+  $: filteredUsers =
+    users == null
+      ? []
+      : users.filter((user) => {
+          return user.name
+            .toLowerCase()
+            .includes(searchForUsersInput.toLowerCase());
+        });
 
   let files_to_upload: FileList;
   let previewImage: string | null = null;
@@ -147,11 +137,12 @@
   let isSuccess = false;
   let searchForUsersInput = "";
   let members = [];
-  let teamLength = 0;
   let selectedOwner = "";
-  let teamIsFull = false;
 
   function handleSetAsTeamOwner(teamMember) {
+    if ($userData.role == 0 && teamMember.id !== $userData.id) {
+      return;
+    }
     return () => {
       owner = teamMember;
       selectedOwner = teamMember.name;
@@ -159,9 +150,10 @@
   }
 
   const handleAddTeamMember = (user) => {
-    if (members.includes(user)) {
+    if (members.some((u) => u.id === user.id)) {
       return;
     }
+
     if (teamLength >= 5) {
       toast.push("A team can't have more than 5 members!", {
         theme: {
@@ -173,24 +165,22 @@
       return;
     }
     members = [...members, user];
-    teamLength += 1;
 
-    if (teamLength == 5) {
-      teamIsFull = true;
-    }
+    console.log("members");
+    console.log(members);
   };
 
   const handleRemoveTeamMember = (user) => {
-    if (user.id === owner.id) {
+    if ($userData.role == 0 && user.id === $userData.id) {
+      return;
+    }
+
+    if (owner && user.id === owner.id) {
       owner = null;
       selectedOwner = "";
     }
 
     members = members.filter((u) => u !== user);
-    teamLength -= 1;
-    if (teamLength < 5) {
-      teamIsFull = false;
-    }
   };
 
   const handleAvatarChange = (e: Event) => {
@@ -207,16 +197,29 @@
     };
   };
 
+  $: teamLength = members.length;
+  $: teamIsFull = teamLength === 5;
+
   const handleCreateButtonClick = () => {
     formModal = true;
     isEditing = false;
-    owner = null;
-    name = "";
-    avatar = null;
-    members = [];
-    teamLength = 0;
-    selectedOwner = "";
-    teamIsFull = false;
+    if ($userData.role === 1) {
+      owner = null;
+      selectedOwner = "";
+      members = [];
+    } else {
+      if (members.some((u) => u.id === $userData.id)) {
+        return;
+      }
+      owner = { ...$userData };
+      selectedOwner = $userData.name as string;
+      members = [...members, $userData];
+    }
+
+    console.log("userdata");
+    console.log($userData);
+    console.log("members on click create");
+    console.log(members);
   };
 
   const handleEditingButtonClick = (team) => {
@@ -266,32 +269,13 @@
       });
   };
 
-  const getAll = () => {
-    fetch(`${PUBLIC_API_URL}/users`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
-        return null;
-      })
-      .then((data) => {
-        users = data !== null ? data.users : data;
-        filteredUsers = users;
-      });
-  };
-
   async function handleCancel(event) {
     event.preventDefault();
     owner = 0;
     name = "";
     avatar = null;
     members = [];
-    teamLength = 0;
     selectedOwner = "";
-    teamIsFull = false;
-    searchForUsersInput = "";
     formModal = false;
     editingTeamId = 0;
   }
@@ -374,8 +358,6 @@
       }
     }
   }
-
-  getAll();
 </script>
 
 <div class="flex flex-col w-full shadow-md">
@@ -522,8 +504,14 @@
                       {teamMember.name}
                     </div>
                   {/if}
+
                   <button
                     type="button"
+                    class={$userData.role === 0 &&
+                    owner &&
+                    owner.id === teamMember.id
+                      ? "scale-0"
+                      : ""}
                     on:click={handleRemoveTeamMember(teamMember)}
                   >
                     <Trash2Icon
