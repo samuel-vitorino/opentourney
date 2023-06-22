@@ -2,6 +2,7 @@
   import {
     Alert,
     Avatar,
+    Badge,
     Button,
     Input,
     Label,
@@ -119,11 +120,12 @@
   $: filteredUsers =
     users == null
       ? []
-      : users.filter((user) => {
-          return user.name
-            .toLowerCase()
-            .includes(searchForUsersInput.toLowerCase());
-        });
+      : users.filter(
+          (user) =>
+            teamLength > 0 &&
+            !isMember(user) &&
+            user.name.toLowerCase().includes(searchForUsersInput.toLowerCase())
+        );
 
   let files_to_upload: FileList;
   let previewImage: string | null = null;
@@ -149,8 +151,13 @@
     };
   }
 
+  const isMember = (user) => {
+    console.log("Validating user as member:", user);
+    return members.some((u) => u.id === user.id);
+  };
+
   const handleAddTeamMember = (user) => {
-    if (members.some((u) => u.id === user.id)) {
+    if (isMember(user)) {
       return;
     }
 
@@ -166,8 +173,8 @@
     }
     members = [...members, user];
 
-    console.log("members");
-    console.log(members);
+    // console.log("members");
+    // console.log(members);
   };
 
   const handleRemoveTeamMember = (user) => {
@@ -216,10 +223,10 @@
       members = [...members, $userData];
     }
 
-    console.log("userdata");
-    console.log($userData);
-    console.log("members on click create");
-    console.log(members);
+    // console.log("userdata");
+    // console.log($userData);
+    // console.log("members on click create");
+    // console.log(members);
   };
 
   const handleEditingButtonClick = (team) => {
@@ -229,45 +236,41 @@
     isEditing = true;
     editingTeamId = team.id;
 
-    return () => {
-      owner = team.owner;
-      name = team.name;
-      avatar = team.avatar;
-      members = team.members;
-      teamLength = team.members.length;
-      selectedOwner = team.ownerName;
-      teamIsFull = teamLength === 5;
-    };
+    owner = team.owner;
+    name = team.name;
+    avatar = team.avatar;
+    members = [...team.members];
+    selectedOwner = team.ownerName;
   };
 
-  const searchLocal = () => {
-    if (users == null) {
-      return [];
-    }
-    return (filteredUsers = users.filter((user) => {
-      let userName = user.name.toLowerCase();
-      let userEmail = user.email.toLowerCase();
-      return (
-        userName.includes(searchForUsersInput.toLowerCase()) ||
-        userEmail.includes(searchForUsersInput.toLowerCase())
-      );
-    }));
-  };
+  // const searchLocal = () => {
+  //   if (users == null) {
+  //     return [];
+  //   }
+  //   return (filteredUsers = users.filter((user) => {
+  //     let userName = user.name.toLowerCase();
+  //     let userEmail = user.email.toLowerCase();
+  //     return (
+  //       userName.includes(searchForUsersInput.toLowerCase()) ||
+  //       userEmail.includes(searchForUsersInput.toLowerCase())
+  //     );
+  //   }));
+  // };
 
-  const search = () => {
-    fetch(`${PUBLIC_API_URL}/users?name=${searchForUsersInput}`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
-        return null;
-      })
-      .then((data) => {
-        users = data !== null ? data.users : data;
-      });
-  };
+  // const search = () => {
+  //   fetch(`${PUBLIC_API_URL}/users?name=${searchForUsersInput}`, {
+  //     credentials: "include",
+  //   })
+  //     .then((res) => {
+  //       if (res.ok) {
+  //         return res.json();
+  //       }
+  //       return null;
+  //     })
+  //     .then((data) => {
+  //       users = data !== null ? data.users : data;
+  //     });
+  // };
 
   async function handleCancel(event) {
     event.preventDefault();
@@ -493,6 +496,26 @@
                     >
                       {teamMember.email}
                     </Popover>
+                  {:else if teamMember.status === 0}
+                    <P
+                      size="xl"
+                      color="text-white"
+                      align="center"
+                      class="flex w-[35px] h-[35px] box-content p-1 absolute justify-center items-center text-yellow-400 -top-4 mx-auto left-0 right-0"
+                      id="pending"
+                    >
+                      <Badge class="m-auto my-2" rounded color="yellow">
+                        Pending</Badge
+                      >
+                    </P>
+                    <Popover
+                      class="w-60 text-sm font-light "
+                      title="Request Pending"
+                      triggeredBy="#pending"
+                      placement="top"
+                    >
+                      {"A request has been sent to " + teamMember.email}
+                    </Popover>
                   {/if}
 
                   {#if owner && owner.id === teamMember.id}
@@ -534,11 +557,10 @@
             <Search
               size="md"
               bind:value={searchForUsersInput}
-              on:input={searchLocal}
               on:keydown={(event) =>
                 event.key === "Enter" && event.preventDefault()}
             />
-            <Button class="!p-2.5" type="button" on:click={searchLocal}>
+            <!-- <Button class="!p-2.5" type="button" on:click={searchLocal}>
               <svg
                 class="w-5 h-5"
                 fill="none"
@@ -552,7 +574,7 @@
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 /></svg
               >
-            </Button>
+            </Button> -->
           </div>
           {#if showingAlert}
             {#if isSuccess}
