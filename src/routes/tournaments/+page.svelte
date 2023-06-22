@@ -16,6 +16,7 @@
     Input,
     Label,
     NumberInput,
+    Select,
   } from "flowbite-svelte";
   import { writable } from "svelte/store";
   import { PUBLIC_API_URL } from "$env/static/public";
@@ -25,6 +26,14 @@
 
   let value = "";
   let items: Tournament[] = [];
+
+  let stageTypes = [
+    {value: 0, name: "Round-Robin"},
+    {value: 1, name: "Single-Elimination"},
+    {value: 2, name: "Double-Elimination"},
+    {value: 3, name: "Round-Robin + Single-Elimination"},
+    {value: 4, name: "Round-Robin + Double-Elimination"},
+  ]
 
   let formModal = false;
   let editModal = false;
@@ -82,6 +91,7 @@
     information: string;
     createdAt: string;
     status: number;
+    stages: number;
     prizes: string[];
   }
 
@@ -101,6 +111,8 @@
           information: tournament.information,
           prizes: fieldValues,
           status: 0,
+          stages: tournament.stages,
+          currentStage: 0,
           avatar: image_to_upload,
         },
       }),
@@ -142,6 +154,7 @@
           information: tournamentEdit.information,
           prizes: fieldValues,
           status: 0,
+          stages: tournamentEdit.stages,
           avatar: image_to_upload,
         },
       }),
@@ -212,6 +225,7 @@
       tournament = {} as Tournament;
       fieldIndex = 0;
       fieldValues = [];
+      previewImage = null;
     }
   }
 
@@ -349,6 +363,11 @@
               required
               bind:value={tournament.organizer}
             />
+          </div>
+          <div class="mb-6 mt-6">
+            <Label>Select the tournament stages
+              <Select class="mt-2" required items={stageTypes} bind:value={tournament.stages} />
+            </Label>
           </div>
           <div class="mb-6 mt-6">
             <Label for="name" class="mb-2">Prizes</Label>
