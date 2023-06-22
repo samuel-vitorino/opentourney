@@ -19,7 +19,7 @@
     TableSearch,
   } from "flowbite-svelte";
   import { writable } from "svelte/store";
-  import { onMount } from "svelte";
+  import { getAllContexts, onMount } from "svelte";
   import { userData } from "@src/stores/user";
   import { PUBLIC_API_URL } from "$env/static/public";
   import { goto } from "$app/navigation";
@@ -53,7 +53,7 @@
 
   // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
 
-  $: if ($userData.loggedIn) {
+  const getTeams = async () => {
     let url =
       `${PUBLIC_API_URL}/` +
       ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
@@ -66,8 +66,11 @@
       })
       .then((data) => {
         teams = data !== null ? data.teams : data;
-        console.log(teams);
       });
+  };
+
+  $: if ($userData.loggedIn) {
+    getTeams();
 
     fetch(`${PUBLIC_API_URL}/users?role=${$userData.role}`)
       .then((res) => {
@@ -230,7 +233,8 @@
     // console.log(members);
   };
 
-  const handleEditingButtonClick = (team) => {
+  const handleEditingButtonClick = (e, team) => {
+    e.stopPropagation();
     // console.log(team);
 
     formModal = true;
@@ -242,6 +246,25 @@
     avatar = team.avatar;
     members = [...team.members];
     selectedOwner = team.ownerName;
+  };
+
+  const handleDeleteButton = async (e, teamId: number) => {
+    e.stopPropagation();
+    console.log("delete button clicked");
+
+    const res = await fetch(`${PUBLIC_API_URL}/teams/${teamId}`, {
+      method: "DELETE",
+    }).then((res) => {
+      if (res.ok) {
+        getTeams();
+        // return res.json();
+        // goto("/teams", { replaceState: true });
+      }
+      return null;
+    });
+    if (res) {
+      console.log("oioioi");
+    }
   };
 
   // const searchLocal = () => {
@@ -310,26 +333,28 @@
         });
 
         console.log("FEZ O PEDIDO");
+        getTeams();
+        formModal = false;
 
-        if (response.ok) {
-          isSuccess = true;
-        } else {
-          isSuccess = false;
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // if (response.ok) {
+        //   isSuccess = true;
+        // } else {
+        //   isSuccess = false;
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
 
-        showingAlert = true;
+        // showingAlert = true;
         // editingTeamId = 0;
 
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        // setTimeout(() => {
+        //   showingAlert = false;
+        // }, 4000);
       } catch (error) {
-        showingAlert = true;
-        isSuccess = false;
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        // showingAlert = true;
+        // isSuccess = false;
+        // setTimeout(() => {
+        //   showingAlert = false;
+        // }, 4000);
       }
     } else {
       try {
@@ -341,24 +366,27 @@
           body: JSON.stringify({ team: { owner, name, avatar, members } }),
         });
 
-        if (response.ok) {
-          isSuccess = true;
-        } else {
-          isSuccess = false;
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // if (response.ok) {
+        //   isSuccess = true;
+        // } else {
+        //   isSuccess = false;
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
 
         showingAlert = true;
+        formModal = false;
+        console.log("FEZ O PEDIDO");
+        getTeams();
 
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        // setTimeout(() => {
+        //   showingAlert = false;
+        // }, 4000);
       } catch (error) {
-        showingAlert = true;
-        isSuccess = false;
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        // showingAlert = true;
+        // isSuccess = false;
+        // setTimeout(() => {
+        //   showingAlert = false;
+        // }, 4000);
       }
     }
   }
@@ -389,8 +417,15 @@
               <TableBodyCell>{team.owner.name}</TableBodyCell>
               <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
               <TableBodyCell>
-                <Button color="light" on:click={handleEditingButtonClick(team)}
+                <Button
+                  color="light"
+                  on:click={(e) => handleEditingButtonClick(e, team)}
                   >Edit</Button
+                >
+                <Button
+                  color="light"
+                  on:click={(e) => handleDeleteButton(e, team.id)}
+                  >DELETE</Button
                 >
               </TableBodyCell>
             </TableBodyRow>
