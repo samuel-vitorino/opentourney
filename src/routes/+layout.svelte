@@ -25,7 +25,7 @@
     SidebarWrapper,
   } from "flowbite-svelte";
   let spanClass = "flex-1 ml-3 whitespace-nowrap";
-  $: activeUrl = $page.url.pathname
+  $: activeUrl = $page.url.pathname;
 
   function handleClick() {
     goto("/login");
@@ -44,7 +44,7 @@
     })
       .then((response) => {
         if (response.ok) {
-          toast.push("Successfully signed out!", {
+          toast.push("A team can't have more than 5 members!", {
             theme: {
               "--toastColor": "mintcream",
               "--toastBackground": "rgb(72,187,120)",
@@ -69,15 +69,60 @@
         });
       });
   }
+
+  let requests: Request[] = [];
+
+  enum RequestStatus {
+    Pending = 0,
+    Accepted = 1,
+    Declined = 2,
+  }
+
+  interface Request {
+    id: number;
+    user_id: number;
+    team_id: number;
+    status: RequestStatus;
+  }
+
+  $: if ($userData.loggedIn) {
+    let url =
+      `${PUBLIC_API_URL}/` +
+      ($userData.role === 1 ? "requests" : "requests?user=" + $userData.id);
+    fetch(`${url}`)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
+      .then((data) => {
+        console.log(data);
+        requests = data !== null ? data.requests : data;
+      });
+  }
+
+  $: pendingRequests = !requests
+    ? 0
+    : requests.filter((request) => request.status === 0).length;
 </script>
 
-<Navbar let:hidden let:toggle class="route-background-transparent dark:bg-gray-900" color="gray">
+<Navbar
+  let:hidden
+  let:toggle
+  class="route-background-transparent dark:bg-gray-900"
+  color="gray"
+>
   <NavBrand href={$userData.loggedIn ? "/home" : "/"}>
     <img src="/favicon.png" class="mr-3 h-10 sm:h-10" alt="OpenTourney Logo" />
   </NavBrand>
   {#if $userData.loggedIn}
     <div class="flex items-center md:order-2">
-      <Avatar id="avatar-menu" class="cursor-pointer" src={$userData.avatar ?? ""} />
+      <Avatar
+        id="avatar-menu"
+        class="cursor-pointer"
+        src={$userData.avatar ?? ""}
+      />
     </div>
     <Dropdown placement="bottom" triggeredBy="#avatar-menu">
       <DropdownHeader>
@@ -110,7 +155,11 @@
       <Sidebar>
         <SidebarWrapper class="h-full dark:bg-gray-900">
           <SidebarGroup>
-            <SidebarItem label="Home" active={activeUrl == '/home'} href="/home">
+            <SidebarItem
+              label="Home"
+              active={activeUrl == "/home"}
+              href="/home"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +180,12 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Tournaments" active={activeUrl == '/tournaments'} href="/tournaments" {spanClass}>
+            <SidebarItem
+              label="Tournaments"
+              active={activeUrl == "/tournaments"}
+              href="/tournaments"
+              {spanClass}
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -148,7 +202,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Teams" active={activeUrl == '/teams'} href="/teams">
+            <SidebarItem
+              label="Teams"
+              active={activeUrl == "/teams"}
+              href="/teams"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -165,7 +223,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Inbox" {spanClass}>
+            <SidebarItem
+              label="Inbox"
+              active={activeUrl == "/inbox"}
+              href="/inbox"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -184,13 +246,18 @@
               <svelte:fragment slot="subtext">
                 <span
                   class="inline-flex justify-center items-center p-3 ml-3 w-3 h-3 text-sm font-medium text-blue-600 bg-blue-200 rounded-full dark:bg-blue-900 dark:text-blue-200"
-                  >3</span
                 >
+                  {pendingRequests}
+                </span>
               </svelte:fragment>
             </SidebarItem>
           </SidebarGroup>
           <SidebarGroup border>
-            <SidebarItem label="Documentation">
+            <SidebarItem
+              label="Documentation"
+              active={activeUrl == "/documentation"}
+              href="/documentation"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -207,7 +274,11 @@
                 >
               </svelte:fragment>
             </SidebarItem>
-            <SidebarItem label="Help">
+            <SidebarItem
+              label="Help"
+              active={activeUrl == "/help"}
+              href="/help"
+            >
               <svelte:fragment slot="icon">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -228,7 +299,7 @@
         </SidebarWrapper>
       </Sidebar>
     {/if}
-    <slot/>
+    <slot />
   </div>
 </div>
 
