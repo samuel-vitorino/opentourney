@@ -38,6 +38,9 @@
         user_id: number;
         team_id: number;
         status: RequestStatus;
+        username: string;
+        teamname: string;
+        createdAt: string;
     }
 
     // TODO Toast for successfull request
@@ -90,10 +93,10 @@
         });
     };
 
-    //TODO FILTER REQUESTS
     $: filteredrequests = requests.filter(
-        // (item) => item.status === RequestStatus.Pending
-        () => true
+        (item) =>
+            item.teamname.toLowerCase().indexOf(value.toLowerCase()) > -1 ||
+            item.username.toLowerCase().indexOf(value.toLowerCase()) > -1
     );
 
     //get all request for the user (if not admin)
@@ -111,7 +114,6 @@
                 return null;
             })
             .then((data) => {
-                console.log(data);
                 requests = data !== null ? data.requests : data;
             });
     }
@@ -162,16 +164,34 @@
                                     {/if}
                                 </div>
                             </TableBodyCell>
+
                             <TableBodyCell class="text-left">
-                                <div>
-                                    {item.team_id +
-                                        " has invited " +
-                                        item.user_id +
-                                        " to join them!"}
+                                <div class="flex flex-row gap-1">
+                                    <div class="font-bold">{item.teamname}</div>
+                                    <div>
+                                        {"has invited"}
+                                    </div>
+                                    <div class="font-bold">{item.username}</div>
+                                    <div>
+                                        {"to join them!"}
+                                    </div>
                                 </div>
                             </TableBodyCell>
-                            <!-- <TableBodyCell>{item.user_id}</TableBodyCell>
-                            <TableBodyCell>{item.team_id}</TableBodyCell> -->
+                            <TableBodyCell>
+                                <div class="flex flex-row justify-end">
+                                    {new Date(
+                                        item.createdAt
+                                    ).toLocaleDateString("en-US", {
+                                        weekday: "long",
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric",
+                                        minute: "2-digit",
+                                        hour: "2-digit",
+                                    })}
+                                </div>
+                            </TableBodyCell>
+
                             <TableBodyCell
                                 class="flex flex-row m-auto content-end gap-2 justify-end"
                             >
