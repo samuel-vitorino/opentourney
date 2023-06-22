@@ -40,7 +40,7 @@
         status: RequestStatus;
         username: string;
         teamname: string;
-        createdAt: string;
+        createdat: string;
     }
 
     // TODO Toast for successfull request
@@ -140,7 +140,7 @@
                 </TableHead> -->
                 <TableBody tableBodyClass="divide-y">
                     {#each filteredrequests as item}
-                        <TableBodyRow on:click={() => goto("/teams")}>
+                        <TableBodyRow>
                             <TableBodyCell class="w-0 justify-center">
                                 <div class="flex flex-row text-center m-auto">
                                     {#if item.status === 0}
@@ -167,7 +167,11 @@
 
                             <TableBodyCell class="text-left">
                                 <div class="flex flex-row gap-1">
-                                    <div class="font-bold">{item.teamname}</div>
+                                    <button
+                                        on:click={() => goto("/teams")}
+                                        class="font-bold hover:font-extrabold"
+                                        >{item.teamname}</button
+                                    >
                                     <div>
                                         {"has invited"}
                                     </div>
@@ -180,7 +184,7 @@
                             <TableBodyCell>
                                 <div class="flex flex-row justify-end">
                                     {new Date(
-                                        item.createdAt
+                                        item.createdat
                                     ).toLocaleDateString("en-US", {
                                         weekday: "long",
                                         day: "numeric",
