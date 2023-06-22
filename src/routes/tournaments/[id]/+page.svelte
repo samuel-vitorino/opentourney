@@ -1,8 +1,7 @@
 <script lang="ts">
     import { P, Tabs, TabItem, Input, Button, Modal } from "flowbite-svelte";
     import { SendIcon } from "svelte-feather-icons";
-    import { BracketsManager } from "brackets-manager";
-    import { InMemoryDatabase } from "brackets-memory-db";
+    import type { Database } from "brackets-manager";
     import { toast } from "@zerodevx/svelte-toast";
     import "brackets-viewer";
     import "@styles/tournament.scss";
@@ -74,33 +73,7 @@
     }
 
     let draw = async () => {
-        const storage = new InMemoryDatabase();
-        const manager = new BracketsManager(storage);
-
-        await manager.create({
-            tournamentId: 3,
-            name: "Elimination stage",
-            type: "double_elimination",
-            seeding: [
-                "Team 1",
-                "Team 2",
-                "Team 3",
-                "Team 4",
-                "Team 5",
-                "Team 6",
-                "Team 7",
-                "Team 8",
-            ],
-            settings: { grandFinal: "simple", groupCount: 2 },
-        });
-
-        await manager.update.match({
-            id: 0, // First match of winner bracket (round 1)
-            opponent1: { score: 16, result: "win" },
-            opponent2: { score: 12 },
-        });
-
-        let data = await manager.get.tournamentData(3);
+        let data = tournament.tournamentData;
 
         window.bracketsViewer.render(
             {
@@ -164,6 +137,7 @@
         stages: number;
         current_stage: number;
         createdAt: string;
+        tournamentData: Database;
         status: number;
     }
 
@@ -532,9 +506,13 @@
                     </div>
                 </div>
             </TabItem>
-            <TabItem on:click={draw}>
+            <TabItem on:click={tournament.status > 0 ? draw : () => null}>
                 <div slot="title" class="flex items-center gap-2">Bracket</div>
-                <div id="#example" class="brackets-viewer" />
+                {#if tournament.status > 0}
+                    <div id="#example" class="brackets-viewer" />
+                {:else}
+                    <P>Waiting for the tournament to start</P>
+                {/if}
             </TabItem>
             <TabItem>
                 <div slot="title" class="flex items-center gap-2">
