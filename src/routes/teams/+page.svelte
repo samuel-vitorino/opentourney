@@ -46,6 +46,8 @@
 
   let formModal = false;
   let isEditing = false;
+  let teamToEdit = null;
+  let editingTeamId = 0;
 
   // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
 
@@ -61,7 +63,6 @@
         return null;
       })
       .then((data) => {
-        console.log(data);
         teams = data !== null ? data.teams : data;
       });
   }
@@ -137,8 +138,10 @@
   let files_to_upload: FileList;
   let previewImage: string | null = null;
 
-  let owner = null;
+  // Utilizados no Create Team
   let name = "";
+
+  let owner = null;
   let avatar: string | null = null;
   let showingAlert = false;
   let isSuccess = false;
@@ -204,17 +207,31 @@
     };
   };
 
+  const handleCreateButtonClick = () => {
+    formModal = true;
+    isEditing = false;
+    owner = null;
+    name = "";
+    avatar = null;
+    members = [];
+    teamLength = 0;
+    selectedOwner = "";
+    teamIsFull = false;
+  };
+
   const handleEditingButtonClick = (team) => {
     // console.log(team);
 
     formModal = true;
     isEditing = true;
+    editingTeamId = team.id;
+
     return () => {
       owner = team.owner;
       name = team.name;
       avatar = team.avatar;
-      // members = team.members;
-      // teamLength = team.members.length;
+      members = team.members;
+      teamLength = team.members.length;
       selectedOwner = team.ownerName;
       teamIsFull = teamLength === 5;
     };
@@ -276,38 +293,85 @@
     teamIsFull = false;
     searchForUsersInput = "";
     formModal = false;
+    editingTeamId = 0;
   }
+
+  // const handleUpdateTeam() {
+  //   return async (event) => {
+  //     event.preventDefault();
+
+  //   };
+  // }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    let id = editingTeamId;
+    if (isEditing) {
+      try {
+        console.log("Editing team");
+        console.log(JSON.stringify({ team: { owner, name, avatar, members } }));
 
-    try {
-      const response = await fetch(`${PUBLIC_API_URL}/teams`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ team: { owner, name, avatar, members } }),
-      });
+        const response = await fetch(`${PUBLIC_API_URL}/teams/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            team: { id, owner, name, avatar, members },
+          }),
+        });
 
-      if (response.ok) {
-        isSuccess = true;
-      } else {
+        console.log("FEZ O PEDIDO");
+
+        if (response.ok) {
+          isSuccess = true;
+        } else {
+          isSuccess = false;
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        showingAlert = true;
+        // editingTeamId = 0;
+
+        setTimeout(() => {
+          showingAlert = false;
+        }, 4000);
+      } catch (error) {
+        showingAlert = true;
         isSuccess = false;
-        throw new Error(`HTTP error! status: ${response.status}`);
+        setTimeout(() => {
+          showingAlert = false;
+        }, 4000);
       }
+    } else {
+      try {
+        const response = await fetch(`${PUBLIC_API_URL}/teams`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ team: { owner, name, avatar, members } }),
+        });
 
-      showingAlert = true;
+        if (response.ok) {
+          isSuccess = true;
+        } else {
+          isSuccess = false;
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      setTimeout(() => {
-        showingAlert = false;
-      }, 4000);
-    } catch (error) {
-      showingAlert = true;
-      isSuccess = false;
-      setTimeout(() => {
-        showingAlert = false;
-      }, 4000);
+        showingAlert = true;
+
+        setTimeout(() => {
+          showingAlert = false;
+        }, 4000);
+      } catch (error) {
+        showingAlert = true;
+        isSuccess = false;
+        setTimeout(() => {
+          showingAlert = false;
+        }, 4000);
+      }
     }
   }
 
@@ -331,12 +395,12 @@
         </TableHeadCell>
       </TableHead>
       <TableBody>
-        {#if filteredTeams.length > 0 && isNumber(filteredTeams[0].owner)}
+        {#if filteredTeams.length > 0}
           {#each filteredTeams as team}
             <TableBodyRow>
               <TableBodyCell>{team.id}</TableBodyCell>
               <TableBodyCell>{team.name}</TableBodyCell>
-              <TableBodyCell>{team.ownername}</TableBodyCell>
+              <TableBodyCell>{team.owner.name}</TableBodyCell>
               <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
               <TableBodyCell>
                 <Button color="light" on:click={handleEditingButtonClick(team)}
@@ -352,7 +416,7 @@
     <div class="create-button {buttonPositionStyle}">
       <button
         class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        on:click={() => (formModal = true)}
+        on:click={handleCreateButtonClick}
       >
         CREATE
       </button>
@@ -626,7 +690,11 @@
           <Button class="mt-4 mx-auto" type="button" on:click={handleCancel}
             >Cancel</Button
           >
-          <Button class="mt-4 mx-auto" type="submit">Create</Button>
+          {#if isEditing}
+            <Button class="mt-4 mx-auto" type="submit">Update</Button>
+          {:else}
+            <Button class="mt-4 mx-auto" type="submit">Create</Button>
+          {/if}
         </div>
       </form>
     </Modal>
