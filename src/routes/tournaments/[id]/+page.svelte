@@ -11,7 +11,7 @@
     import { PUBLIC_WSURL } from "$env/static/public";
     import { userData } from "@src/stores/user";
 
-    const tournamentId = "3";
+    const tournamentId = "3"; //REPLACE HERE BEFORE MERGE
 
     let messageList: { senderName: string; messageType: number; message: string; }[] = [];
     let messageInput = '';
@@ -40,7 +40,7 @@ function sendMessage() {
         }];
         socket.emit(tournamentId, 
         {
-        "senderName": $userData.name,
+        "senderName": "$userData.email", //REPLACE HERE BEFORE MERGE
         "message": message,
         "messageType": 0
         });
