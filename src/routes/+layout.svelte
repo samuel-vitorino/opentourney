@@ -97,7 +97,6 @@
         return null;
       })
       .then((data) => {
-        console.log(data);
         requests = data !== null ? data.requests : data;
       });
   }

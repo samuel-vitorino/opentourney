@@ -4,12 +4,14 @@
     Avatar,
     Badge,
     Button,
+    Heading,
     Input,
     Label,
     Modal,
     P,
     Popover,
     Search,
+    Table,
     TableBody,
     TableBodyCell,
     TableBodyRow,
@@ -262,7 +264,7 @@
         console.log("Editing team");
         console.log(JSON.stringify({ team: { owner, name, avatar, members } }));
 
-        const response = await fetch(`${PUBLIC_API_URL}/teams/${id}`, {
+        await fetch(`${PUBLIC_API_URL}/teams/${id}`, {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -276,30 +278,12 @@
         console.log("FEZ O PEDIDO");
         getTeams();
         formModal = false;
-
-        // if (response.ok) {
-        //   isSuccess = true;
-        // } else {
-        //   isSuccess = false;
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-
-        // showingAlert = true;
-        // editingTeamId = 0;
-
-        // setTimeout(() => {
-        //   showingAlert = false;
-        // }, 4000);
       } catch (error) {
-        // showingAlert = true;
-        // isSuccess = false;
-        // setTimeout(() => {
-        //   showingAlert = false;
-        // }, 4000);
+        console.log(error);
       }
     } else {
       try {
-        const response = await fetch(`${PUBLIC_API_URL}/teams`, {
+        await fetch(`${PUBLIC_API_URL}/teams`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -308,27 +292,12 @@
           body: JSON.stringify({ team: { owner, name, avatar, members } }),
         });
 
-        // if (response.ok) {
-        //   isSuccess = true;
-        // } else {
-        //   isSuccess = false;
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-
         showingAlert = true;
         formModal = false;
         console.log("FEZ O PEDIDO");
         getTeams();
-
-        // setTimeout(() => {
-        //   showingAlert = false;
-        // }, 4000);
       } catch (error) {
-        // showingAlert = true;
-        // isSuccess = false;
-        // setTimeout(() => {
-        //   showingAlert = false;
-        // }, 4000);
+        console.log(error);
       }
     }
   }
@@ -336,54 +305,79 @@
 
 <div class="flex flex-col w-full shadow-md">
   <div class="box-content p-4">
-    <TableSearch
-      placeholder="Search by maker name"
-      hoverable={true}
-      bind:inputValue={searchTerm}
-    >
-      <TableHead>
-        <TableHeadCell>ID</TableHeadCell>
-        <TableHeadCell>Name</TableHeadCell>
-        <TableHeadCell>Owner</TableHeadCell>
-        <!-- <TableHeadCell on:click={() => sortTable("make")}>Make</TableHeadCell> -->
-        <TableHeadCell>
-          <span class="sr-only"> Edit </span>
-        </TableHeadCell>
-      </TableHead>
-      <TableBody>
-        {#if filteredTeams.length > 0}
-          {#each filteredTeams as team}
-            <TableBodyRow on:click={() => goto(`/teams/${team.id}`)}>
-              <TableBodyCell>{team.id}</TableBodyCell>
-              <TableBodyCell>{team.name}</TableBodyCell>
-              <TableBodyCell>{team.owner.name}</TableBodyCell>
-              <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
-              <TableBodyCell>
-                <Button
-                  color="light"
-                  on:click={(e) => handleEditingButtonClick(e, team)}
-                  >Edit</Button
-                >
-                <Button
-                  color="light"
-                  on:click={(e) => handleDeleteButton(e, team.id)}
-                  >DELETE</Button
-                >
-              </TableBodyCell>
-            </TableBodyRow>
-          {/each}
-        {/if}
-      </TableBody>
-    </TableSearch>
+    <Heading
+      class="mb-3"
+      customSize="text-2xl font-extrabold mb-4 md:text-3xl lg:text-4xl"
+      >Teams
+    </Heading>
 
-    <div class="create-button {buttonPositionStyle}">
-      <button
-        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        on:click={handleCreateButtonClick}
+    <div class="flex justify-between mb-2">
+      <div class="w-4/12">
+        <Search size="md" bind:value={searchTerm} />
+      </div>
+      <Button size="md" on:click={() => handleCreateButtonClick()}
+        >Create <svg
+          aria-hidden="true"
+          class="ml-2 -mr-1 w-5 h-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+          ><path
+            fill-rule="evenodd"
+            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          /></svg
+        ></Button
       >
-        CREATE
-      </button>
     </div>
+
+    <div
+      class="shadow-md sm:rounded-lg overflow-y-auto h-[calc(100vh-200px)] custom-scrollbar"
+    >
+      <Table hoverable={true}>
+        <TableBody>
+          {#if filteredTeams.length > 0}
+            {#each filteredTeams as team}
+              <TableBodyRow on:click={() => goto(`/teams/${team.id}`)}>
+                <TableBodyCell>
+                  <div class="flex flex-row gap-2 text-center">
+                    <P size="xl">{team.name}</P>
+                    <P size="xs" weight="semibold">{team.owner.name}</P>
+                  </div>
+                </TableBodyCell>
+
+                <TableBodyCell>
+                  <div class="flex flex-row gap-1">
+                    {#each team.members as member}
+                      <Avatar
+                        class="w-[40px] h-[40px] cursor-pointer"
+                        src={member.avatar ?? avatar}
+                      />
+                    {/each}
+                  </div>
+                </TableBodyCell>
+
+                <TableBodyCell
+                  class="flex flex-row m-auto content-end gap-2 justify-end"
+                >
+                  <Button
+                    color="light"
+                    on:click={(e) => handleEditingButtonClick(e, team)}
+                    >Edit</Button
+                  >
+                  <Button
+                    color="light"
+                    on:click={(e) => handleDeleteButton(e, team.id)}
+                    >DELETE</Button
+                  >
+                </TableBodyCell>
+              </TableBodyRow>
+            {/each}
+          {/if}
+        </TableBody>
+      </Table>
+    </div>
+
     <Modal bind:open={formModal} size="lg" autoclose={false} class="w-full">
       <form class="flex flex-col grow justify-between" on:submit={handleSubmit}>
         <div class="mb-6">

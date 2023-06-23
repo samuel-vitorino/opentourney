@@ -12,11 +12,10 @@
         Search,
         Button,
         Badge,
+        P,
     } from "flowbite-svelte";
-    import {
-        CheckIcon,
-        XIcon,
-    } from "svelte-feather-icons";
+    import { CheckIcon, XIcon } from "svelte-feather-icons";
+    import "@styles/scrollbar.scss";
 
     let value = "";
 
@@ -59,7 +58,14 @@
                         "--toastBarBackground": "#2F855A",
                     },
                 });
-                request = { ...request, status: RequestStatus.Accepted };
+
+                requests = requests.map((item) => {
+                    if (item.id === request.id) {
+                        item.status = RequestStatus.Accepted;
+                    }
+                    return item;
+                });
+                // request = { ...request, status: RequestStatus.Accepted };
             }
             return null;
         });
@@ -84,7 +90,14 @@
                         "--toastBarBackground": "#2F855A",
                     },
                 });
-                request = { ...request, status: RequestStatus.Declined };
+
+                requests = requests.map((item) => {
+                    if (item.id === request.id) {
+                        item.status = RequestStatus.Declined;
+                    }
+                    return item;
+                });
+                // requests = { ...request, status: RequestStatus.Declined };
             }
             return null;
         });
@@ -120,120 +133,131 @@
     <div class="box-content p-4">
         <Heading
             class="mb-3"
-            customSize="text-2xl font-extrabold  md:text-3xl lg:text-4xl"
-            >Inbox</Heading
-        >
+            customSize="text-2xl font-extrabold mb-4 md:text-3xl lg:text-4xl"
+            >Inbox
+        </Heading>
         <div>
             <div class="flex mb-2 w-1/3">
                 <Search size="md" class="w-3/12" bind:value />
             </div>
 
-            <Table shadow hoverable={true}>
-                <TableBody tableBodyClass="divide-y">
-                    {#each filteredrequests as item}
-                        <TableBodyRow>
-                            <TableBodyCell class="w-0 justify-center">
-                                <div class="flex flex-row text-center m-auto">
-                                    {#if item.status === 0}
-                                        <Badge
-                                            class="m-auto my-2"
-                                            rounded
-                                            color="yellow">Pending</Badge
-                                        >
-                                    {:else if item.status === 1}
-                                        <Badge
-                                            class="m-auto my-2"
-                                            rounded
-                                            color="green">Accepted</Badge
-                                        >
-                                    {:else if item.status === 2}
-                                        <Badge
-                                            class="m-auto my-2"
-                                            rounded
-                                            color="red">Declined</Badge
-                                        >
-                                    {/if}
-                                </div>
-                            </TableBodyCell>
-
-                            <TableBodyCell class="text-left">
-                                <div class="flex flex-row gap-1">
-                                    {#if $userData}
-                                        {#if $userData.role === 1}
-                                            <button
-                                                on:click={() => goto("/teams")}
-                                                class="font-bold hover:font-extrabold"
-                                                >{item.teamname}</button
+            <div
+                class="shadow-md sm:rounded-lg overflow-y-auto h-[calc(100vh-200px)] custom-scrollbar"
+            >
+                <Table hoverable={true}>
+                    <TableBody tableBodyClass="divide-y">
+                        {#each filteredrequests as item}
+                            <TableBodyRow>
+                                <TableBodyCell class="w-0 justify-center">
+                                    <div
+                                        class="flex flex-row text-center m-auto"
+                                    >
+                                        {#if item.status === 0}
+                                            <Badge
+                                                class="m-auto my-2"
+                                                rounded
+                                                color="yellow">Pending</Badge
                                             >
-                                            <div>
-                                                {"has invited"}
-                                            </div>
-                                            <div class="font-bold">
-                                                {item.username}
-                                            </div>
-                                            <div>
-                                                {"to join them!"}
-                                            </div>
-                                        {:else}
-                                            <div>
-                                                {"You have been invited to join"}
-                                            </div>
-                                            <button
-                                                on:click={() => goto("/teams")}
-                                                class="font-bold hover:font-extrabold"
-                                                >{item.teamname}!</button
+                                        {:else if item.status === 1}
+                                            <Badge
+                                                class="m-auto my-2"
+                                                rounded
+                                                color="green">Accepted</Badge
+                                            >
+                                        {:else if item.status === 2}
+                                            <Badge
+                                                class="m-auto my-2"
+                                                rounded
+                                                color="red">Declined</Badge
                                             >
                                         {/if}
-                                    {/if}
-                                </div>
-                            </TableBodyCell>
-                            <TableBodyCell>
-                                <div class="flex flex-row justify-end">
-                                    {new Date(
-                                        item.createdat
-                                    ).toLocaleDateString("en-US", {
-                                        weekday: "long",
-                                        day: "numeric",
-                                        month: "long",
-                                        year: "numeric",
-                                        minute: "2-digit",
-                                        hour: "2-digit",
-                                    })}
-                                </div>
-                            </TableBodyCell>
+                                    </div>
+                                </TableBodyCell>
 
-                            <TableBodyCell
-                                class="flex flex-row m-auto content-end gap-2 justify-end"
-                            >
-                                {#if item.status === 0}
-                                    <Button
+                                <TableBodyCell class="text-left">
+                                    <div class="flex flex-row gap-1">
+                                        {#if $userData}
+                                            {#if $userData.role === 1}
+                                                <button
+                                                    on:click={() =>
+                                                        goto("/teams")}
+                                                    class="font-bold hover:font-extrabold"
+                                                    >{item.teamname}</button
+                                                >
+                                                <P size="sm">
+                                                    {"has invited"}
+                                                </P>
+                                                <P size="sm" weight="semibold">
+                                                    {item.username}
+                                                </P>
+                                                <P size="sm">
+                                                    {"to join them!"}
+                                                </P>
+                                            {:else}
+                                                <P size="sm">
+                                                    {"You have been invited to join"}
+                                                </P>
+                                                <button
+                                                    on:click={() =>
+                                                        goto("/teams")}
+                                                    class="font-bold hover:font-extrabold"
+                                                    >{item.teamname}!</button
+                                                >
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                </TableBodyCell>
+                                <TableBodyCell>
+                                    <P
                                         size="sm"
-                                        outline
-                                        color="primary"
-                                        bind:disabled={item.status}
-                                        on:click={() =>
-                                            handleAcceptRequest(item)}
-                                        class="font-medium text-green-600 dark:text-green-500 bg-green-200 rounded-full"
+                                        class="flex flex-row justify-end"
                                     >
-                                        <CheckIcon class="w-5 h-5" />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        outline
-                                        color="primary"
-                                        bind:disabled={item.status}
-                                        on:click={() =>
-                                            handleDeclineRequest(item)}
-                                        class="font-medium text-red-600 dark:text-red-500 bg-red-200 rounded-full"
-                                    >
-                                        <XIcon class="w-5 h-5" />
-                                    </Button>
-                                {/if}
-                            </TableBodyCell>
-                        </TableBodyRow>
-                    {/each}
-                </TableBody>
-            </Table>
+                                        {new Date(
+                                            item.createdat
+                                        ).toLocaleDateString("en-US", {
+                                            weekday: "long",
+                                            day: "numeric",
+                                            month: "long",
+                                            year: "numeric",
+                                            minute: "2-digit",
+                                            hour: "2-digit",
+                                        })}
+                                    </P>
+                                </TableBodyCell>
+
+                                <TableBodyCell
+                                    class="flex flex-row m-auto content-end gap-2 justify-end"
+                                >
+                                    {#if item.status === 0}
+                                        <Button
+                                            size="sm"
+                                            outline
+                                            color="primary"
+                                            bind:disabled={item.status}
+                                            on:click={() =>
+                                                handleAcceptRequest(item)}
+                                            class="font-medium text-green-600 dark:text-green-500 bg-green-200 rounded-full"
+                                        >
+                                            <CheckIcon class="w-5 h-5" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            outline
+                                            color="primary"
+                                            bind:disabled={item.status}
+                                            on:click={() =>
+                                                handleDeclineRequest(item)}
+                                            class="font-medium text-red-600 dark:text-red-500 bg-red-200 rounded-full"
+                                        >
+                                            <XIcon class="w-5 h-5" />
+                                        </Button>
+                                    {/if}
+                                </TableBodyCell>
+                            </TableBodyRow>
+                        {/each}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     </div>
 </div>
