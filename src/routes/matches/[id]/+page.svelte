@@ -103,7 +103,7 @@
     let myTurn: boolean;
 
     $: {
-        if (typeof imOwner !== undefined && typeof myTeam !== undefined && match && match.status == 0 && currentVetoStatus) {
+        if (typeof imOwner != undefined && typeof myTeam != undefined && match && match.status == 0 && currentVetoStatus) {
             if (imOwner && myTeam == 0 && (currentVetoStatus.status == 0 || currentVetoStatus.status == 1)) {
                 myTurn = true;
             }
@@ -113,7 +113,6 @@
             else {
                 myTurn = false;
             }
-            console.log(myTurn, imOwner, myTeam, currentVetoStatus.status)
         }
     }
 
