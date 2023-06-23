@@ -4,6 +4,7 @@
     Avatar,
     Badge,
     Button,
+    Fileupload,
     Heading,
     Input,
     Label,
@@ -15,9 +16,6 @@
     TableBody,
     TableBodyCell,
     TableBodyRow,
-    TableHead,
-    TableHeadCell,
-    TableSearch,
   } from "flowbite-svelte";
   import { onMount } from "svelte";
   import { userData } from "@src/stores/user";
@@ -51,10 +49,7 @@
 
   let formModal = false;
   let isEditing = false;
-  let teamToEdit = null;
   let editingTeamId = 0;
-
-  // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
 
   const getTeams = async () => {
     let url =
@@ -116,9 +111,6 @@
           user.name.toLowerCase().includes(searchForUsersInput.toLowerCase())
       );
 
-  let files_to_upload: FileList;
-  let previewImage: string | null = null;
-
   // Utilizados no Create Team
   let name = "";
 
@@ -172,6 +164,14 @@
     members = members.filter((u) => u !== user);
   };
 
+  let fileuploadprops = {
+    id: "team_avatar",
+  };
+
+  let files_to_upload: FileList;
+  let image_to_upload: string;
+  let previewImage: string | null = null;
+
   const handleAvatarChange = (e: Event) => {
     const files = (<HTMLInputElement>e.target).files;
 
@@ -179,10 +179,13 @@
       return;
     }
 
+    files_to_upload = files;
+
     const reader = new FileReader();
     reader.readAsDataURL(files[0]);
     reader.onload = function () {
       previewImage = <string>reader.result;
+      image_to_upload = <string>reader.result;
     };
   };
 
@@ -208,7 +211,6 @@
 
   const handleEditingButtonClick = (e: Event, team: Team) => {
     e.stopPropagation();
-    // console.log(team);
 
     formModal = true;
     isEditing = true;
@@ -222,7 +224,6 @@
 
   const handleDeleteButton = async (e: Event, teamId: number) => {
     e.stopPropagation();
-    console.log("delete button clicked");
 
     const res = await fetch(`${PUBLIC_API_URL}/teams/${teamId}`, {
       method: "DELETE",
@@ -234,13 +235,11 @@
       }
       return null;
     });
-    if (res) {
-      console.log("oioioi");
-    }
   };
 
   async function handleCancel(event: Event) {
     event.preventDefault();
+    previewImage = null;
     owner = null;
     name = "";
     avatar = null;
@@ -249,53 +248,70 @@
     editingTeamId = 0;
   }
 
-  // const handleUpdateTeam() {
-  //   return async (event) => {
-  //     event.preventDefault();
-
-  //   };
-  // }
-
   async function handleSubmit(event: Event) {
     event.preventDefault();
     let id = editingTeamId;
     if (isEditing) {
       try {
-        console.log("Editing team");
-        console.log(JSON.stringify({ team: { owner, name, avatar, members } }));
-
-        await fetch(`${PUBLIC_API_URL}/teams/${id}`, {
+        fetch(`${PUBLIC_API_URL}/teams/${id}`, {
           method: "PUT",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            team: { id, owner, name, avatar, members },
+            team: {
+              id,
+              owner,
+              name,
+              avatar: image_to_upload ?? avatar,
+              members,
+            },
           }),
-        });
+        }).then((res) => {
+          if (res.ok) {
+            toast.push("Team edited successfully!", {
+              theme: {
+                "--toastColor": "mintcream",
+                "--toastBackground": "rgb(72,187,120)",
+                "--toastBarBackground": "#2F855A",
+              },
+            });
 
-        console.log("FEZ O PEDIDO");
-        getTeams();
-        formModal = false;
+            showingAlert = true;
+            formModal = false;
+            getTeams();
+          }
+        });
       } catch (error) {
         console.log(error);
       }
     } else {
       try {
-        await fetch(`${PUBLIC_API_URL}/teams`, {
+        console.log("POST", { owner, name, avatar: image_to_upload, members });
+
+        fetch(`${PUBLIC_API_URL}/teams`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ team: { owner, name, avatar, members } }),
-        });
+        }).then((res) => {
+          if (res.ok) {
+            toast.push("Team edited successfully!", {
+              theme: {
+                "--toastColor": "mintcream",
+                "--toastBackground": "rgb(72,187,120)",
+                "--toastBarBackground": "#2F855A",
+              },
+            });
 
-        showingAlert = true;
-        formModal = false;
-        console.log("FEZ O PEDIDO");
-        getTeams();
+            showingAlert = true;
+            formModal = false;
+            getTeams();
+          }
+        });
       } catch (error) {
         console.log(error);
       }
@@ -351,7 +367,7 @@
                     {#each team.members as member}
                       <Avatar
                         class="w-[40px] h-[40px] cursor-pointer"
-                        src={member.avatar ?? avatar}
+                        src={member.avatar}
                       />
                     {/each}
                   </div>
@@ -378,8 +394,37 @@
       </Table>
     </div>
 
-    <Modal bind:open={formModal} size="lg" autoclose={false} class="w-full">
-      <form class="flex flex-col grow justify-between" on:submit={handleSubmit}>
+    <Modal
+      permanent
+      bind:open={formModal}
+      size="lg"
+      autoclose={false}
+      class="w-full"
+    >
+      <form
+        class="flex flex-col grow justify-between"
+        id="newTeamForm"
+        on:submit={handleSubmit}
+      >
+        <div class="flex flex-col items-center mb-6">
+          <img
+            id="avatar-menu"
+            class="w-full h-[250px] rounded-sm mb-2"
+            src={previewImage !== null
+              ? previewImage
+              : avatar
+              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              : "/images/placeholder.png"}
+            alt="Tournament Avatar"
+          />
+          <Fileupload
+            class="mt-6"
+            bind:files={files_to_upload}
+            accept="image/jpeg, image/png"
+            on:change={handleAvatarChange}
+            {...fileuploadprops}
+          />
+        </div>
         <div class="mb-6">
           <Label for="teamName" class="block mb-2">Team Name</Label>
           <Input
@@ -392,7 +437,7 @@
           />
         </div>
         <div>
-          <div class="flex flex-row justify-center items-center mt-16 mb-10">
+          <div class="flex flex-row justify-center items-center my-10">
             {#if teamLength != 0}
               {#each members as teamMember}
                 <div class="relative mb-2 mx-2 text-center dark:text-white">
@@ -403,7 +448,7 @@
                     <Avatar
                       id="avatar-menu"
                       class="w-[100px] h-[100px] cursor-pointer"
-                      src={teamMember.avatar ?? avatar}
+                      src={teamMember.avatar}
                     />
                   </button>
                   {#if owner && owner.id === teamMember.id}
@@ -593,7 +638,7 @@
                         <Avatar
                           id="avatar-menu"
                           class="cursor-pointer"
-                          src={user.avatar ?? ""}
+                          src={user.avatar}
                         />
                         <div class="pl-3">
                           <div class="text-base font-semibold">{user.name}</div>
@@ -626,17 +671,17 @@
             </div>
           {/if}
         </div>
-        <div class="flex">
-          <Button class="mt-4 mx-auto" type="button" on:click={handleCancel}
+      </form>
+      <svelte:fragment slot="footer">
+        <div class="flex flex-row gap-5 grow">
+          <Button class="w-full" type="button" on:click={handleCancel}
             >Cancel</Button
           >
-          {#if isEditing}
-            <Button class="mt-4 mx-auto" type="submit">Update</Button>
-          {:else}
-            <Button class="mt-4 mx-auto" type="submit">Create</Button>
-          {/if}
+          <Button class="w-full" type="submit" form="newTeamForm"
+            >Create new Team</Button
+          >
         </div>
-      </form>
+      </svelte:fragment>
     </Modal>
   </div>
 </div>
