@@ -9,6 +9,7 @@
     import "@styles/brackets-viewer.min.css";
     import { io } from "socket.io-client";
     import { PUBLIC_WSURL } from "$env/static/public";
+    import { userData } from "@src/stores/user";
 
     const tournamentId = "3";
 
@@ -39,7 +40,7 @@ function sendMessage() {
         }];
         socket.emit(tournamentId, 
         {
-        "senderName": "jorge",
+        "senderName": $userData.name,
         "message": message,
         "messageType": 0
         });
