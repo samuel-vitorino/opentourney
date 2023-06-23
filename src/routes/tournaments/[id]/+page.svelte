@@ -16,10 +16,11 @@
     import "@styles/tournament.scss";
     import "@styles/brackets-viewer.min.css";
     import type { PageData } from "./$types";
-    import { PUBLIC_API_URL } from "$env/static/public";
+    import { PUBLIC_API_URL, PUBLIC_WSURL } from "$env/static/public";
     import { userData } from "@src/stores/user";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
+    import { io } from "socket.io-client";
 
     export let data: PageData;
 
@@ -65,6 +66,55 @@
 
     let tournamentTeams: Array<Team> = [];
     let tournamentMatches: Array<Match> = [];
+
+    let messageList: {
+        senderName: string;
+        messageType: number;
+        message: string;
+    }[] = [];
+    let messageInput = "";
+
+    const socket = io(PUBLIC_WSURL, {});
+
+    onMount(() => {
+        socket.on("connect", () => {
+            console.log("Socket.IO connected");
+            socket.emit("joinTournamentRoom", tournament.id);
+        });
+
+        socket.on("chatMessage", (data: Object) => {
+            console.log(`received ${tournament.id}`, data);
+            messageList = [
+                ...messageList,
+                data as {
+                    senderName: string;
+                    messageType: number;
+                    message: string;
+                },
+            ];
+        });
+    });
+
+    function sendMessage() {
+        const message = messageInput.trim();
+        if (message) {
+            messageList = [
+                ...messageList,
+                {
+                    senderName: "",
+                    messageType: 0,
+                    message: message,
+                },
+            ];
+            socket.emit("chatMessage", tournament.id, {
+                senderName: $userData.name,
+                message: message,
+                messageType: 0,
+            });
+            messageInput = "";
+            console.log(`sent`, message);
+        }
+    }
 
     function formatDate(date: Date) {
         const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -760,10 +810,50 @@
                 <div slot="title" class="flex items-center gap-2">Chat</div>
                 <div
                     class="border bg-white rounded-sm h-[350px] flex box-content items-end p-3"
+                    style="overflow-y: scroll;"
                 >
-                    <div class="flex w-full">
-                        <Input type="text" placeholder="Message" />
-                        <Button class="ml-2"><SendIcon /></Button>
+                    <div class="flex flex-col w-full gap-y-1">
+                        {#each messageList as message}
+                            <div>
+                                {#if message.senderName == ""}
+                                    <div class="flex w-full justify-end">
+                                        <div
+                                            class="flex flex-row bg-blue-200 rounded-xl p-2"
+                                        >
+                                            <p
+                                                style="font-weight: bold; text-align: right;"
+                                            >
+                                                Me:
+                                            </p>
+                                            <p style="text-align: right;">
+                                                {message.message}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {:else}
+                                    <div class="flex w-full">
+                                        <div
+                                            class="flex flex-row bg-blue-200 rounded-xl p-2"
+                                        >
+                                            <P weight="bold"
+                                                >{message.senderName}:</P
+                                            >
+                                            <P>{message.message}</P>
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+                        {/each}
+                        <div class="flex w-full">
+                            <Input
+                                type="text"
+                                placeholder="Message"
+                                bind:value={messageInput}
+                            />
+                            <Button class="ml-2" on:click={sendMessage}
+                                ><SendIcon /></Button
+                            >
+                        </div>
                     </div>
                 </div>
             </TabItem>
