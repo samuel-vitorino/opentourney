@@ -422,9 +422,9 @@
               class="w-full h-[150px] rounded-sm mb-2"
               src={previewImage !== null
                 ? previewImage
-                : `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                : tournament.avatar ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
                     tournamentEdit.avatar
-                  }` ?? "/images/placeholder.png"}
+                  }` : "/images/placeholder.png"}
               alt="Tournament Avatar"
             />
             <Fileupload

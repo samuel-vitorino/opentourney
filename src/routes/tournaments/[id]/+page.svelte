@@ -728,7 +728,7 @@
                                             getPlayerTeams();
                                         }}>Join Tournament</Button
                                     >
-                                {:else if alreadyJoined && tournament.status == 0}
+                                {:else if alreadyJoined}
                                     <div
                                         class="flex w-full justify-center mt-5 items-center"
                                     >
@@ -737,16 +737,18 @@
                                         >
                                         <P weight="semibold">{joinedTeamName}</P
                                         >
-                                        <Button
-                                            class="ml-2"
-                                            color="red"
-                                            on:click={() => {
-                                                leaveTournament(
-                                                    tournament.id,
-                                                    joinedTeamId
-                                                );
-                                            }}>Leave</Button
-                                        >
+                                        {#if tournament.status == 0}
+                                            <Button
+                                                class="ml-2"
+                                                color="red"
+                                                on:click={() => {
+                                                    leaveTournament(
+                                                        tournament.id,
+                                                        joinedTeamId
+                                                    );
+                                                }}>Leave</Button
+                                            >
+                                        {/if}
                                     </div>
                                 {/if}
                             </div>
