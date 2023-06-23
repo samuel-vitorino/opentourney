@@ -28,6 +28,8 @@
   "type": "module",
   "dependencies": {
     "@popperjs/core": "^2.11.6",
+    "brackets-manager": "^1.5.8",
+    "brackets-viewer": "github:samuel-vitorino/brackets-viewer.js",
     "classnames": "^2.3.2",
     "flowbite": "^1.6.4",
     "flowbite-svelte": "^0.30.6",
