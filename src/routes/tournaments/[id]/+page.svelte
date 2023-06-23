@@ -55,6 +55,12 @@
         score: [number, number];
     }
 
+    interface MessageData {
+        senderName: string;
+        messageType: number;
+        message: string;
+    }
+
     let defaultModal = false;
     let joinModal = false;
     let teams: Array<Object> = [];
@@ -67,11 +73,7 @@
     let tournamentTeams: Array<Team> = [];
     let tournamentMatches: Array<Match> = [];
 
-    let messageList: {
-        senderName: string;
-        messageType: number;
-        message: string;
-    }[] = [];
+    let messageList: MessageData[] = [];
     let messageInput = "";
 
     const socket = io(PUBLIC_WSURL, {});
@@ -82,16 +84,15 @@
             socket.emit("joinTournamentRoom", tournament.id);
         });
 
-        socket.on("chatMessage", (data: Object) => {
-            console.log(`received ${tournament.id}`, data);
+        socket.on("chatMessage", (data: MessageData) => {
             messageList = [
                 ...messageList,
-                data as {
-                    senderName: string;
-                    messageType: number;
-                    message: string;
-                },
+                data,
             ];
+        });
+
+        socket.on("initialMessages", (data: MessageData[]) => {
+            messageList = messageList.concat(data);
         });
     });
 
@@ -815,7 +816,7 @@
                     <div class="flex flex-col w-full gap-y-1">
                         {#each messageList as message}
                             <div>
-                                {#if message.senderName == ""}
+                                {#if message.senderName == "" || message.senderName == $userData.name}
                                     <div class="flex w-full justify-end">
                                         <div
                                             class="flex flex-row bg-blue-200 rounded-xl p-2"

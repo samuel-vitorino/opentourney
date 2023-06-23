@@ -4,7 +4,6 @@
     import { PUBLIC_WSURL } from "$env/static/public";
     import { onMount } from "svelte";
     import { Socket, io } from "socket.io-client";
-    import { each } from 'svelte/internal';
     import { userData } from '@src/stores/user';
     
     interface User {
