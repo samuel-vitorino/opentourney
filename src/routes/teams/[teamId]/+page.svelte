@@ -51,7 +51,9 @@
       <div class="flex flex-row mt-12 mb-16 justify-center">
         <Avatar
           class="w-[200px] h-[200px] cursor-pointer"
-          src={`${PUBLIC_API_URL.replace("/api", "/images")}/${team.avatar}`}
+          src={team.avatar
+            ? `${PUBLIC_API_URL.replace("/api", "/images")}/${team.avatar}`
+            : undefined}
         />
       </div>
       <div class="flex flex-row gap-12 justify-center">
