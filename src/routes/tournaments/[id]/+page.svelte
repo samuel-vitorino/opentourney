@@ -906,7 +906,7 @@
                                     <P
                                         size="2xl"
                                         weight="semibold"
-                                        color={m.score[0] > m.score[1]
+                                        color={m.score[0] < m.score[1]
                                             ? "text-green-500"
                                             : ""}>{m.score[1]}</P
                                     >
