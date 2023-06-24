@@ -61,7 +61,11 @@
           <div class="relative flex flex-col items-center gap-2">
             <Avatar
               class="w-[100px] h-[100px] cursor-pointer"
-              src={member.avatar}
+              src={member.avatar !== null
+                ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                    member.avatar
+                  }`
+                : undefined}
             />
             <!-- <P>{member.name}</P> -->
             {#if team.owner && team.owner.id === member.id}

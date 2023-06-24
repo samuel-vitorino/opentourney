@@ -51,10 +51,18 @@
   let isEditing = false;
   let editingTeamId = 0;
 
+  // let url =
+  //     `${PUBLIC_API_URL}/` +
+  //     ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
+
+  // let url =
+  //     `${PUBLIC_API_URL}/` +
+  //     ($userData.role === 1 ? "teams" : "teams?user=" + $userData.id);
+
   const getTeams = async () => {
     let url =
       `${PUBLIC_API_URL}/` +
-      ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
+      ($userData.role === 1 ? "teams" : "teams?user=" + $userData.id);
     fetch(`${url}`)
       .then((res) => {
         if (res.ok) {
@@ -64,6 +72,7 @@
       })
       .then((data) => {
         teams = data !== null ? data.teams : data;
+        console.log(teams);
       });
   };
 
@@ -212,6 +221,10 @@
   const handleEditingButtonClick = (e: Event, team: Team) => {
     e.stopPropagation();
 
+    if ($userData.role === 0 && team.owner.id !== $userData.id) {
+      return;
+    }
+
     formModal = true;
     isEditing = true;
     editingTeamId = team.id;
@@ -224,6 +237,10 @@
 
   const handleDeleteButton = async (e: Event, teamId: number) => {
     e.stopPropagation();
+
+    if ($userData.role === 0 && team.owner.id !== $userData.id) {
+      return;
+    }
 
     const res = await fetch(`${PUBLIC_API_URL}/teams/${teamId}`, {
       method: "DELETE",
@@ -299,7 +316,7 @@
           body: JSON.stringify({ team: { owner, name, avatar, members } }),
         }).then((res) => {
           if (res.ok) {
-            toast.push("Team edited successfully!", {
+            toast.push("Team created successfully!", {
               theme: {
                 "--toastColor": "mintcream",
                 "--toastBackground": "rgb(72,187,120)",
@@ -366,8 +383,13 @@
                   <div class="flex flex-row gap-1">
                     {#each team.members as member}
                       <Avatar
-                        class="w-[40px] h-[40px] cursor-pointer"
-                        src={member.avatar}
+                        id="avatar-menu"
+                        class="cursor-pointer"
+                        src={member.avatar !== null
+                          ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                              member.avatar
+                            }`
+                          : undefined}
                       />
                     {/each}
                   </div>
@@ -378,11 +400,17 @@
                 >
                   <Button
                     color="light"
+                    class={$userData.role != 1 && team.owner.id !== $userData.id
+                      ? "hidden"
+                      : ""}
                     on:click={(e) => handleEditingButtonClick(e, team)}
                     >Edit</Button
                   >
                   <Button
                     color="light"
+                    class={$userData.role != 1 && team.owner.id !== $userData.id
+                      ? "hidden"
+                      : ""}
                     on:click={(e) => handleDeleteButton(e, team.id)}
                     >DELETE</Button
                   >
@@ -407,6 +435,12 @@
         on:submit={handleSubmit}
       >
         <div class="flex flex-col items-center mb-6">
+          <!-- <Avatar
+            class="w-[250px] h-[250px] cursor-pointer"
+            src={avatar !== null
+              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              : undefined}
+          /> -->
           <img
             id="avatar-menu"
             class="w-full h-[250px] rounded-sm mb-2"
@@ -448,7 +482,11 @@
                     <Avatar
                       id="avatar-menu"
                       class="w-[100px] h-[100px] cursor-pointer"
-                      src={teamMember.avatar}
+                      src={teamMember.avatar !== null
+                        ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                            teamMember.avatar
+                          }`
+                        : undefined}
                     />
                   </button>
                   {#if owner && owner.id === teamMember.id}
@@ -638,7 +676,11 @@
                         <Avatar
                           id="avatar-menu"
                           class="cursor-pointer"
-                          src={user.avatar}
+                          src={user.avatar !== null
+                            ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                                user.avatar
+                              }`
+                            : undefined}
                         />
                         <div class="pl-3">
                           <div class="text-base font-semibold">{user.name}</div>
@@ -678,7 +720,7 @@
             >Cancel</Button
           >
           <Button class="w-full" type="submit" form="newTeamForm"
-            >Create new Team</Button
+            >{isEditing ? "Update" : "Create new Team"}</Button
           >
         </div>
       </svelte:fragment>

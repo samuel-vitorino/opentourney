@@ -44,7 +44,7 @@
     })
       .then((response) => {
         if (response.ok) {
-          toast.push("A team can't have more than 5 members!", {
+          toast.push("Signed out!", {
             theme: {
               "--toastColor": "mintcream",
               "--toastBackground": "rgb(72,187,120)",
@@ -120,7 +120,9 @@
       <Avatar
         id="avatar-menu"
         class="cursor-pointer"
-        src={$userData.avatar ?? ""}
+        src={$userData.avatar !== null
+          ? `${PUBLIC_API_URL.replace("/api", "/images")}/${$userData.avatar}`
+          : undefined}
       />
     </div>
     <Dropdown placement="bottom" triggeredBy="#avatar-menu">
