@@ -13,6 +13,7 @@
     TableHeadCell,
   } from "flowbite-svelte";
   import "@styles/home.scss";
+  import { PUBLIC_API_URL } from "$env/static/public";
 
   export let data: PageData;
 
@@ -45,15 +46,18 @@
           <Avatar
             id="avatar-menu"
             class="w-[150px] h-[150px] rounded-sm"
-            src={data.user.avatar ?? ""}
+            src={data.user.avatar !== null
+              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                  data.user.avatar
+                }`
+              : undefined}
           />
           <P
             size="xl"
             color="text-white"
             align="center"
             class="bg-sky-500 rounded-full w-[30px] h-[30px] box-content p-1 absolute -top-3 -right-3"
-            id="role"
-            >{data.user.role === 0 ? "S" : "D"}</P
+            id="role">{data.user.role === 0 ? "S" : "D"}</P
           >
           <Popover
             class="w-64 text-sm font-light "
@@ -61,7 +65,9 @@
             triggeredBy="#role"
             placement="right"
           >
-            {data.user.role == 0 ? "This user is a standard user with default permissions" : "This user is a platform developer"}
+            {data.user.role == 0
+              ? "This user is a standard user with default permissions"
+              : "This user is a platform developer"}
           </Popover>
         </div>
         <div class="self-end">
