@@ -8,6 +8,7 @@
         Modal,
         Select,
         Label,
+        Avatar,
     } from "flowbite-svelte";
     import { SendIcon } from "svelte-feather-icons";
     import type { Database } from "brackets-manager";
@@ -18,9 +19,10 @@
     import type { PageData } from "./$types";
     import { PUBLIC_API_URL, PUBLIC_WSURL } from "$env/static/public";
     import { userData } from "@src/stores/user";
-    import { onMount } from "svelte";
+    import { afterUpdate, onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { io } from "socket.io-client";
+    import "@styles/scrollbar.scss";
 
     export let data: PageData;
 
@@ -95,6 +97,33 @@
             messageList = messageList.concat(data);
         });
     });
+
+    afterUpdate(() => {
+        scrollToBottom();
+    });
+
+    let firstTime = true;
+    let prevScrollHeight = 0;
+    function scrollToBottom() {
+        let objDiv = document.getElementById("chatscroll");
+        console.log(objDiv);
+        if (!objDiv) return;
+
+        console.log(prevScrollHeight);
+        console.log("scroll:", objDiv.scrollTop + objDiv.clientHeight);
+
+        if (firstTime) {
+            objDiv.scrollTop = prevScrollHeight = objDiv.scrollHeight;
+            firstTime = false;
+        } else if (
+            objDiv.scrollTop + objDiv.clientHeight ===
+            prevScrollHeight
+        ) {
+            objDiv.scrollTop = prevScrollHeight = objDiv.scrollHeight;
+        } else {
+            prevScrollHeight = objDiv.scrollHeight;
+        }
+    }
 
     function sendMessage() {
         const message = messageInput.trim();
@@ -422,6 +451,7 @@
 
     onMount(() => {
         getTournamentTeams(tournament.id);
+        scrollToBottom();
     });
 
     const updateTournament = () => {
@@ -813,39 +843,53 @@
                     class="border bg-white rounded-sm h-[350px] flex box-content items-end p-3"
                     style="overflow-y: scroll;"
                 >
-                    <div class="flex flex-col w-full gap-y-1">
-                        {#each messageList as message}
-                            <div>
-                                {#if message.senderName == "" || message.senderName == $userData.name}
-                                    <div class="flex w-full justify-end">
+                    <div class="flex flex-col justify-end h-full w-full">
+                        <div
+                            id="chatscroll"
+                            class="overflow-y-scroll hide-scrollbar"
+                        >
+                            <div
+                                class="flex flex-col justify-end grow w-full gap-y-1"
+                            >
+                                {#each messageList as message}
+                                    {#if message.senderName == "" || message.senderName == $userData.name}
                                         <div
-                                            class="flex flex-row bg-blue-200 rounded-xl p-2"
+                                            class="flex w-full justify-end gap-x-1 max-w-2xl self-end"
                                         >
-                                            <p
-                                                style="font-weight: bold; text-align: right;"
+                                            <div
+                                                class="flex flex-row bg-green-200 rounded-xl p-2 gap-x-1"
                                             >
-                                                Me:
-                                            </p>
-                                            <p style="text-align: right;">
-                                                {message.message}
-                                            </p>
+                                                <p
+                                                    style="font-weight: bold; text-align: right;"
+                                                >
+                                                    Me:
+                                                </p>
+                                                <p style="text-align: right;">
+                                                    {message.message}
+                                                </p>
+                                            </div>
+                                            <Avatar class="shrink-0" />
                                         </div>
-                                    </div>
-                                {:else}
-                                    <div class="flex w-full">
+                                    {:else}
                                         <div
-                                            class="flex flex-row bg-blue-200 rounded-xl p-2"
+                                            class="flex w-full gap-x-1 max-w-2xl"
                                         >
-                                            <P weight="bold"
-                                                >{message.senderName}:</P
+                                            <Avatar class="shrink-0" />
+
+                                            <div
+                                                class="flex flex-row bg-blue-200 rounded-xl p-2 gap-x-1"
                                             >
-                                            <P>{message.message}</P>
+                                                <P weight="bold"
+                                                    >{message.senderName}:</P
+                                                >
+                                                <P>{message.message}</P>
+                                            </div>
                                         </div>
-                                    </div>
-                                {/if}
+                                    {/if}
+                                {/each}
                             </div>
-                        {/each}
-                        <div class="flex w-full">
+                        </div>
+                        <div class="flex w-full pt-3">
                             <Input
                                 type="text"
                                 placeholder="Message"

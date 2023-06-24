@@ -13,7 +13,8 @@ declare global {
 			avatar?: string,
 			role?: number,
 			steamid?: string,
-			id?: number
+			id?: number,
+			status?: number,
 		}       
 	}
 	

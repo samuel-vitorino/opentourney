@@ -4,6 +4,8 @@
     Avatar,
     Badge,
     Button,
+    Fileupload,
+    Heading,
     Input,
     Label,
     Modal,
@@ -14,30 +16,29 @@
     TableBody,
     TableBodyCell,
     TableBodyRow,
-    TableHead,
-    TableHeadCell,
-    TableSearch,
   } from "flowbite-svelte";
-  import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import { userData } from "@src/stores/user";
   import { PUBLIC_API_URL } from "$env/static/public";
+  import { toast } from "@zerodevx/svelte-toast";
+  import { Trash2Icon } from "svelte-feather-icons";
   import { goto } from "$app/navigation";
-  import { StarIcon, Trash2Icon } from "svelte-feather-icons";
 
   function isNumber(value?: string | number): boolean {
     return value != null && value !== "" && !isNaN(Number(value.toString()));
   }
 
   interface User {
+    id: number;
     name: string;
     email: string;
     avatar: string;
+    status: number;
   }
   interface Team {
+    id: number;
     name: string;
-    owner: string;
-
+    owner: User;
     avatar: string;
     ownername: string;
     members: User[];
@@ -48,15 +49,20 @@
 
   let formModal = false;
   let isEditing = false;
-  let teamToEdit = null;
   let editingTeamId = 0;
 
-  // let url = `${PUBLIC_API_URL}`, if userdata.role = 1, then url = `${PUBLIC_API_URL}/teams` else if userdata.role = 2, then url = `${PUBLIC_API_URL}/teams?owner=${$userData.id}`
+  // let url =
+  //     `${PUBLIC_API_URL}/` +
+  //     ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
 
-  $: if ($userData.loggedIn) {
+  // let url =
+  //     `${PUBLIC_API_URL}/` +
+  //     ($userData.role === 1 ? "teams" : "teams?user=" + $userData.id);
+
+  const getTeams = async () => {
     let url =
       `${PUBLIC_API_URL}/` +
-      ($userData.role === 1 ? "teams" : "teams?owner=" + $userData.id);
+      ($userData.role === 1 ? "teams" : "teams?user=" + $userData.id);
     fetch(`${url}`)
       .then((res) => {
         if (res.ok) {
@@ -66,7 +72,12 @@
       })
       .then((data) => {
         teams = data !== null ? data.teams : data;
+        console.log(teams);
       });
+  };
+
+  $: if ($userData.loggedIn) {
+    getTeams();
 
     fetch(`${PUBLIC_API_URL}/users?role=${$userData.role}`)
       .then((res) => {
@@ -77,24 +88,8 @@
       })
       .then((data) => {
         users = data !== null ? data.users : data;
-        // filteredUsers = users;
       });
   }
-
-  // // Now fetch the API to get the user that created the team using the owner ID from the team and update the teams array with the user's name, the URL is /users/:id
-  // teams.forEach((team) => {
-  //   fetch(`${PUBLIC_API_URL}/users/${team.owner}`)
-  //     .then((res) => {
-  //       if (res.ok) {
-  //         return res.json();
-  //       }
-  //       return null;
-  //     })
-  //     .then((data) => {
-  //       team.owner = data !== null ? data.user.name : data.user.name;
-  //     });
-  // });
-  // console.log(teams);
 
   let searchTerm = "";
   let buttonPositionStyle = "";
@@ -115,48 +110,40 @@
     }
   });
 
-  let users = null;
+  let users: User[] = [];
 
-  $: filteredUsers =
-    users == null
-      ? []
-      : users.filter(
-          (user) =>
-            teamLength > 0 &&
-            !isMember(user) &&
-            user.name.toLowerCase().includes(searchForUsersInput.toLowerCase())
-        );
-
-  let files_to_upload: FileList;
-  let previewImage: string | null = null;
+  $: filteredUsers = !users
+    ? []
+    : users.filter(
+        (user) =>
+          (teamLength == 0 || !isMember(user)) &&
+          user.name.toLowerCase().includes(searchForUsersInput.toLowerCase())
+      );
 
   // Utilizados no Create Team
   let name = "";
 
-  let owner = null;
+  let owner: User | null = null;
   let avatar: string | null = null;
   let showingAlert = false;
   let isSuccess = false;
   let searchForUsersInput = "";
-  let members = [];
-  let selectedOwner = "";
+  let members: User[] = [];
 
-  function handleSetAsTeamOwner(teamMember) {
+  function handleSetAsTeamOwner(teamMember: User) {
     if ($userData.role == 0 && teamMember.id !== $userData.id) {
       return;
     }
     return () => {
       owner = teamMember;
-      selectedOwner = teamMember.name;
     };
   }
 
-  const isMember = (user) => {
-    console.log("Validating user as member:", user);
+  const isMember = (user: User | App.UserData) => {
     return members.some((u) => u.id === user.id);
   };
 
-  const handleAddTeamMember = (user) => {
+  const handleAddTeamMember = (user: User) => {
     if (isMember(user)) {
       return;
     }
@@ -172,23 +159,27 @@
       return;
     }
     members = [...members, user];
-
-    // console.log("members");
-    // console.log(members);
   };
 
-  const handleRemoveTeamMember = (user) => {
+  const handleRemoveTeamMember = (user: User) => {
     if ($userData.role == 0 && user.id === $userData.id) {
       return;
     }
 
     if (owner && user.id === owner.id) {
       owner = null;
-      selectedOwner = "";
     }
 
     members = members.filter((u) => u !== user);
   };
+
+  let fileuploadprops = {
+    id: "team_avatar",
+  };
+
+  let files_to_upload: FileList;
+  let image_to_upload: string;
+  let previewImage: string | null = null;
 
   const handleAvatarChange = (e: Event) => {
     const files = (<HTMLInputElement>e.target).files;
@@ -197,10 +188,13 @@
       return;
     }
 
+    files_to_upload = files;
+
     const reader = new FileReader();
     reader.readAsDataURL(files[0]);
     reader.onload = function () {
       previewImage = <string>reader.result;
+      image_to_upload = <string>reader.result;
     };
   };
 
@@ -210,27 +204,26 @@
   const handleCreateButtonClick = () => {
     formModal = true;
     isEditing = false;
+    name = "";
+
     if ($userData.role === 1) {
       owner = null;
-      selectedOwner = "";
       members = [];
     } else {
-      if (members.some((u) => u.id === $userData.id)) {
+      if (isMember($userData)) {
         return;
       }
-      owner = { ...$userData };
-      selectedOwner = $userData.name as string;
-      members = [...members, $userData];
+      owner = { ...$userData } as User;
+      members = [...members, $userData] as User[];
     }
-
-    // console.log("userdata");
-    // console.log($userData);
-    // console.log("members on click create");
-    // console.log(members);
   };
 
-  const handleEditingButtonClick = (team) => {
-    // console.log(team);
+  const handleEditingButtonClick = (e: Event, team: Team) => {
+    e.stopPropagation();
+
+    if ($userData.role === 0 && team.owner.id !== $userData.id) {
+      return;
+    }
 
     formModal = true;
     isEditing = true;
@@ -240,124 +233,104 @@
     name = team.name;
     avatar = team.avatar;
     members = [...team.members];
-    selectedOwner = team.ownerName;
   };
 
-  // const searchLocal = () => {
-  //   if (users == null) {
-  //     return [];
-  //   }
-  //   return (filteredUsers = users.filter((user) => {
-  //     let userName = user.name.toLowerCase();
-  //     let userEmail = user.email.toLowerCase();
-  //     return (
-  //       userName.includes(searchForUsersInput.toLowerCase()) ||
-  //       userEmail.includes(searchForUsersInput.toLowerCase())
-  //     );
-  //   }));
-  // };
+  const handleDeleteButton = async (e: Event, teamId: number) => {
+    e.stopPropagation();
 
-  // const search = () => {
-  //   fetch(`${PUBLIC_API_URL}/users?name=${searchForUsersInput}`, {
-  //     credentials: "include",
-  //   })
-  //     .then((res) => {
-  //       if (res.ok) {
-  //         return res.json();
-  //       }
-  //       return null;
-  //     })
-  //     .then((data) => {
-  //       users = data !== null ? data.users : data;
-  //     });
-  // };
+    if ($userData.role === 0 && team.owner.id !== $userData.id) {
+      return;
+    }
 
-  async function handleCancel(event) {
+    const res = await fetch(`${PUBLIC_API_URL}/teams/${teamId}`, {
+      method: "DELETE",
+    }).then((res) => {
+      if (res.ok) {
+        getTeams();
+        // return res.json();
+        // goto("/teams", { replaceState: true });
+      }
+      return null;
+    });
+  };
+
+  async function handleCancel(event: Event) {
     event.preventDefault();
-    owner = 0;
+    previewImage = null;
+    owner = null;
     name = "";
     avatar = null;
     members = [];
-    selectedOwner = "";
     formModal = false;
     editingTeamId = 0;
   }
 
-  // const handleUpdateTeam() {
-  //   return async (event) => {
-  //     event.preventDefault();
-
-  //   };
-  // }
-
-  async function handleSubmit(event) {
+  async function handleSubmit(event: Event) {
     event.preventDefault();
     let id = editingTeamId;
     if (isEditing) {
       try {
-        console.log("Editing team");
-        console.log(JSON.stringify({ team: { owner, name, avatar, members } }));
-
-        const response = await fetch(`${PUBLIC_API_URL}/teams/${id}`, {
+        fetch(`${PUBLIC_API_URL}/teams/${id}`, {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            team: { id, owner, name, avatar, members },
+            team: {
+              id,
+              owner,
+              name,
+              avatar: image_to_upload ?? avatar,
+              members,
+            },
           }),
+        }).then((res) => {
+          if (res.ok) {
+            toast.push("Team edited successfully!", {
+              theme: {
+                "--toastColor": "mintcream",
+                "--toastBackground": "rgb(72,187,120)",
+                "--toastBarBackground": "#2F855A",
+              },
+            });
+
+            showingAlert = true;
+            formModal = false;
+            getTeams();
+          }
         });
-
-        console.log("FEZ O PEDIDO");
-
-        if (response.ok) {
-          isSuccess = true;
-        } else {
-          isSuccess = false;
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        showingAlert = true;
-        // editingTeamId = 0;
-
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
       } catch (error) {
-        showingAlert = true;
-        isSuccess = false;
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        console.log(error);
       }
     } else {
       try {
-        const response = await fetch(`${PUBLIC_API_URL}/teams`, {
+        console.log("POST", { owner, name, avatar: image_to_upload, members });
+
+        fetch(`${PUBLIC_API_URL}/teams`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ team: { owner, name, avatar, members } }),
+        }).then((res) => {
+          if (res.ok) {
+            toast.push("Team created successfully!", {
+              theme: {
+                "--toastColor": "mintcream",
+                "--toastBackground": "rgb(72,187,120)",
+                "--toastBarBackground": "#2F855A",
+              },
+            });
+
+            showingAlert = true;
+            formModal = false;
+            getTeams();
+          }
         });
-
-        if (response.ok) {
-          isSuccess = true;
-        } else {
-          isSuccess = false;
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        showingAlert = true;
-
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
       } catch (error) {
-        showingAlert = true;
-        isSuccess = false;
-        setTimeout(() => {
-          showingAlert = false;
-        }, 4000);
+        console.log(error);
       }
     }
   }
@@ -365,49 +338,127 @@
 
 <div class="flex flex-col w-full shadow-md">
   <div class="box-content p-4">
-    <TableSearch
-      placeholder="Search by maker name"
-      hoverable={true}
-      bind:inputValue={searchTerm}
-    >
-      <TableHead>
-        <TableHeadCell on:click={() => sortTable("id")}>ID</TableHeadCell>
-        <TableHeadCell on:click={() => sortTable("name")}>Name</TableHeadCell>
-        <TableHeadCell on:click={() => sortTable("owner")}>Owner</TableHeadCell>
-        <!-- <TableHeadCell on:click={() => sortTable("make")}>Make</TableHeadCell> -->
-        <TableHeadCell>
-          <span class="sr-only"> Edit </span>
-        </TableHeadCell>
-      </TableHead>
-      <TableBody>
-        {#if filteredTeams.length > 0}
-          {#each filteredTeams as team}
-            <TableBodyRow>
-              <TableBodyCell>{team.id}</TableBodyCell>
-              <TableBodyCell>{team.name}</TableBodyCell>
-              <TableBodyCell>{team.owner.name}</TableBodyCell>
-              <!-- <TableBodyCell>{item.make}</TableBodyCell> -->
-              <TableBodyCell>
-                <Button color="light" on:click={handleEditingButtonClick(team)}
-                  >Edit</Button
-                >
-              </TableBodyCell>
-            </TableBodyRow>
-          {/each}
-        {/if}
-      </TableBody>
-    </TableSearch>
+    <Heading
+      class="mb-3"
+      customSize="text-2xl font-extrabold mb-4 md:text-3xl lg:text-4xl"
+      >Teams
+    </Heading>
 
-    <div class="create-button {buttonPositionStyle}">
-      <button
-        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        on:click={handleCreateButtonClick}
+    <div class="flex justify-between mb-2">
+      <div class="w-4/12">
+        <Search size="md" bind:value={searchTerm} />
+      </div>
+      <Button size="md" on:click={() => handleCreateButtonClick()}
+        >Create <svg
+          aria-hidden="true"
+          class="ml-2 -mr-1 w-5 h-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+          ><path
+            fill-rule="evenodd"
+            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          /></svg
+        ></Button
       >
-        CREATE
-      </button>
     </div>
-    <Modal bind:open={formModal} size="lg" autoclose={false} class="w-full">
-      <form class="flex flex-col grow justify-between" on:submit={handleSubmit}>
+
+    <div
+      class="shadow-md sm:rounded-lg overflow-y-auto h-[calc(100vh-200px)] custom-scrollbar"
+    >
+      <Table hoverable={true}>
+        <TableBody>
+          {#if filteredTeams.length > 0}
+            {#each filteredTeams as team}
+              <TableBodyRow on:click={() => goto(`/teams/${team.id}`)}>
+                <TableBodyCell>
+                  <div class="flex flex-row gap-2 text-center">
+                    <P size="xl">{team.name}</P>
+                    <P size="xs" weight="semibold">{team.owner.name}</P>
+                  </div>
+                </TableBodyCell>
+
+                <TableBodyCell>
+                  <div class="flex flex-row gap-1">
+                    {#each team.members as member}
+                      <Avatar
+                        id="avatar-menu"
+                        class="cursor-pointer"
+                        src={member.avatar !== null
+                          ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                              member.avatar
+                            }`
+                          : undefined}
+                      />
+                    {/each}
+                  </div>
+                </TableBodyCell>
+
+                <TableBodyCell
+                  class="flex flex-row m-auto content-end gap-2 justify-end"
+                >
+                  <Button
+                    color="light"
+                    class={$userData.role != 1 && team.owner.id !== $userData.id
+                      ? "hidden"
+                      : ""}
+                    on:click={(e) => handleEditingButtonClick(e, team)}
+                    >Edit</Button
+                  >
+                  <Button
+                    color="light"
+                    class={$userData.role != 1 && team.owner.id !== $userData.id
+                      ? "hidden"
+                      : ""}
+                    on:click={(e) => handleDeleteButton(e, team.id)}
+                    >DELETE</Button
+                  >
+                </TableBodyCell>
+              </TableBodyRow>
+            {/each}
+          {/if}
+        </TableBody>
+      </Table>
+    </div>
+
+    <Modal
+      permanent
+      bind:open={formModal}
+      size="lg"
+      autoclose={false}
+      class="w-full"
+    >
+      <form
+        class="flex flex-col grow justify-between"
+        id="newTeamForm"
+        on:submit={handleSubmit}
+      >
+        <div class="flex flex-col items-center mb-6">
+          <!-- <Avatar
+            class="w-[250px] h-[250px] cursor-pointer"
+            src={avatar !== null
+              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              : undefined}
+          /> -->
+          <img
+            id="avatar-menu"
+            class="w-full h-[250px] rounded-sm mb-2"
+            src={previewImage !== null
+              ? previewImage
+              : avatar
+              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              : "/images/placeholder.png"}
+            alt="Tournament Avatar"
+          />
+          <Fileupload
+            class="mt-6"
+            bind:files={files_to_upload}
+            accept="image/jpeg, image/png"
+            on:change={handleAvatarChange}
+            {...fileuploadprops}
+          />
+        </div>
         <div class="mb-6">
           <Label for="teamName" class="block mb-2">Team Name</Label>
           <Input
@@ -420,20 +471,7 @@
           />
         </div>
         <div>
-          <div class="flex flex-row justify-center items-center mt-16 mb-10">
-            <!-- <div class="flex flex-col items-center">
-                    <Avatar
-                      id="avatar-menu"
-                      class="w-[150px] h-[150px] rounded-sm mb-2"
-                      src={previewImage !== null ? previewImage : avatar ?? ""}
-                    />
-                    <Fileupload
-                      bind:files={files_to_upload}
-                      accept="image/jpeg, image/png"
-                      on:change={handleAvatarChange}
-                      {...fileuploadprops}
-                    />
-                  </div> -->
+          <div class="flex flex-row justify-center items-center my-10">
             {#if teamLength != 0}
               {#each members as teamMember}
                 <div class="relative mb-2 mx-2 text-center dark:text-white">
@@ -444,7 +482,11 @@
                     <Avatar
                       id="avatar-menu"
                       class="w-[100px] h-[100px] cursor-pointer"
-                      src={teamMember.avatar ?? avatar}
+                      src={teamMember.avatar !== null
+                        ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                            teamMember.avatar
+                          }`
+                        : undefined}
                     />
                   </button>
                   {#if owner && owner.id === teamMember.id}
@@ -535,7 +577,7 @@
                     owner.id === teamMember.id
                       ? "scale-0"
                       : ""}
-                    on:click={handleRemoveTeamMember(teamMember)}
+                    on:click={() => handleRemoveTeamMember(teamMember)}
                   >
                     <Trash2Icon
                       size="20"
@@ -560,21 +602,6 @@
               on:keydown={(event) =>
                 event.key === "Enter" && event.preventDefault()}
             />
-            <!-- <Button class="!p-2.5" type="button" on:click={searchLocal}>
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-                ><path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                /></svg
-              >
-            </Button> -->
           </div>
           {#if showingAlert}
             {#if isSuccess}
@@ -621,7 +648,7 @@
             {/if}
           {/if}
 
-          {#if filteredUsers != null}
+          {#if filteredUsers}
             <div
               class="relative p-4 my-4 max-h-80 overflow-auto shadow-md sm:rounded-lg"
             >
@@ -649,7 +676,11 @@
                         <Avatar
                           id="avatar-menu"
                           class="cursor-pointer"
-                          src={user.avatar ?? ""}
+                          src={user.avatar !== null
+                            ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                                user.avatar
+                              }`
+                            : undefined}
                         />
                         <div class="pl-3">
                           <div class="text-base font-semibold">{user.name}</div>
@@ -671,7 +702,7 @@
                         <Button
                           type="button"
                           color="light"
-                          on:click={handleAddTeamMember(user)}
+                          on:click={() => handleAddTeamMember(user)}
                           bind:disabled={teamIsFull}>Add Player</Button
                         >
                       </td>
@@ -681,69 +712,18 @@
               </table>
             </div>
           {/if}
-          <!-- {#if teamLength != 0}
-            <Table hoverable={true}>
-              <TableHead>
-                <TableHeadCell>Avatar</TableHeadCell>
-                <TableHeadCell>Name</TableHeadCell>
-                <TableHeadCell>Action</TableHeadCell>
-                <TableHeadCell>
-                  <span class="sr-only"> Edit </span>
-                </TableHeadCell>
-              </TableHead>
-              <TableBody class="divide-y">
-                {#each members as teamMember}
-                  <TableBodyRow>
-                    <TableBodyCell
-                      ><Avatar
-                        id="avatar-menu"
-                        class="cursor-pointer"
-                        src={teamMember.avatar ?? ""}
-                      /></TableBodyCell
-                    >
-                    <TableBodyCell>{teamMember.name}</TableBodyCell>
-                    <TableBodyCell>
-                      <Button
-                        color="light"
-                        on:click={handleRemoveTeamMember(teamMember)}
-                        >Remove Player</Button
-                      >
-                    </TableBodyCell>
-                    <TableBodyCell>
-                      {#if owner === teamMember.id}
-                        <Button color="blue" disabled>Set as Team Owner</Button>
-                      {:else}
-                        <Button
-                          color="blue"
-                          on:click={handleSetAsTeamOwner(teamMember)}
-                        >
-                          Set as Team Owner
-                        </Button>
-                      {/if}
-                    </TableBodyCell>
-                  </TableBodyRow>
-                {/each}
-              </TableBody>
-            </Table>
-          {/if} -->
-        </div>
-        <div class="flex">
-          <Button class="mt-4 mx-auto" type="button" on:click={handleCancel}
-            >Cancel</Button
-          >
-          {#if isEditing}
-            <Button class="mt-4 mx-auto" type="submit">Update</Button>
-          {:else}
-            <Button class="mt-4 mx-auto" type="submit">Create</Button>
-          {/if}
         </div>
       </form>
+      <svelte:fragment slot="footer">
+        <div class="flex flex-row gap-5 grow">
+          <Button class="w-full" type="button" on:click={handleCancel}
+            >Cancel</Button
+          >
+          <Button class="w-full" type="submit" form="newTeamForm"
+            >{isEditing ? "Update" : "Create new Team"}</Button
+          >
+        </div>
+      </svelte:fragment>
     </Modal>
   </div>
 </div>
-
-<style>
-  .create-button {
-    /* Add any additional styles for the button here */
-  }
-</style>
