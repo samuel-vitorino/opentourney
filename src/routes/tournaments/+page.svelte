@@ -86,6 +86,7 @@
     id: number;
     name: string;
     max_teams: number;
+    admin: number;
     avatar: string;
     organizer: string;
     information: string;
@@ -294,30 +295,32 @@
               >
               <!-- svelte-ignore a11y-click-events-have-key-events -->
               <TableBodyCell>
-                <!-- svelte-ignore a11y-missing-attribute -->
-                <a
-                  on:click={(e) => {
-                    e.stopPropagation();
-                    tournamentEdit = item;
-                    fieldValues = tournamentEdit.prizes;
-                    fieldIndex = fieldValues.length;
-                    editModal = true;
-                  }}
-                  class="text-orange-400"
-                >
-                  Edit
-                </a>
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-missing-attribute -->
-                <a
-                  on:click={(e) => {
-                    e.stopPropagation();
-                    deleteTournament(item.id);
-                  }}
-                  class="font-medium text-red-600 hover:underline dark:text-red-500"
-                >
-                  Remove
-                </a>
+                {#if item.admin == $userData.id}
+                  <!-- svelte-ignore a11y-missing-attribute -->
+                  <a
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      tournamentEdit = item;
+                      fieldValues = tournamentEdit.prizes;
+                      fieldIndex = fieldValues.length;
+                      editModal = true;
+                    }}
+                    class="text-orange-400"
+                  >
+                    Edit
+                  </a>
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
+                  <!-- svelte-ignore a11y-missing-attribute -->
+                  <a
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      deleteTournament(item.id);
+                    }}
+                    class="font-medium text-red-600 hover:underline dark:text-red-500"
+                  >
+                    Remove
+                  </a>
+                {/if}
               </TableBodyCell>
             </TableBodyRow>
           {/each}
@@ -422,9 +425,9 @@
               class="w-full h-[150px] rounded-sm mb-2"
               src={previewImage !== null
                 ? previewImage
-                : `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                : tournament.avatar ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
                     tournamentEdit.avatar
-                  }` ?? "/images/placeholder.png"}
+                  }` : "/images/placeholder.png"}
               alt="Tournament Avatar"
             />
             <Fileupload

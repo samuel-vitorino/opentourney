@@ -18,3 +18,9 @@
 .custom-scrollbar::-webkit-scrollbar-corner {
     background-color: #f2f2f2;
 }
+
+
+.hide-scrollbar::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}

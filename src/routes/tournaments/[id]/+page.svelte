@@ -1,5 +1,15 @@
 <script lang="ts">
-    import { P, Tabs, TabItem, Input, Button, Modal } from "flowbite-svelte";
+    import {
+        P,
+        Tabs,
+        TabItem,
+        Input,
+        Button,
+        Modal,
+        Select,
+        Label,
+        Avatar,
+    } from "flowbite-svelte";
     import { SendIcon } from "svelte-feather-icons";
     import type { Database } from "brackets-manager";
     import { toast } from "@zerodevx/svelte-toast";
@@ -7,12 +17,307 @@
     import "@styles/tournament.scss";
     import "@styles/brackets-viewer.min.css";
     import type { PageData } from "./$types";
-    import { PUBLIC_API_URL } from "$env/static/public";
+    import { PUBLIC_API_URL, PUBLIC_WSURL } from "$env/static/public";
     import { userData } from "@src/stores/user";
+    import { afterUpdate, onMount } from "svelte";
+    import { goto } from "$app/navigation";
+    import { io } from "socket.io-client";
+    import "@styles/scrollbar.scss";
 
     export let data: PageData;
 
+    interface User {
+        id: number;
+        avatar: string;
+        email: string;
+        status: number;
+    }
+
+    interface Team {
+        id: number;
+        name: string;
+        avatar: string;
+        members: Array<User>;
+        owner: User;
+    }
+
+    interface Game {
+        status: number;
+        team_one_score: number;
+        team_two_score: number;
+    }
+
+    interface Match {
+        id: number;
+        team_one_name: string;
+        team_two_name: string;
+        games: Game[];
+        createdAt: string;
+        status: number;
+        score: [number, number];
+    }
+
+    interface MessageData {
+        senderName: string;
+        messageType: number;
+        message: string;
+    }
+
     let defaultModal = false;
+    let joinModal = false;
+    let teams: Array<Object> = [];
+    let teamToJoin = {} as Team;
+
+    let alreadyJoined = false;
+    let joinedTeamName: string;
+    let joinedTeamId: number;
+
+    let tournamentTeams: Array<Team> = [];
+    let tournamentMatches: Array<Match> = [];
+
+    let messageList: MessageData[] = [];
+    let messageInput = "";
+
+    const socket = io(PUBLIC_WSURL, {});
+
+    onMount(() => {
+        socket.on("connect", () => {
+            console.log("Socket.IO connected");
+            socket.emit("joinTournamentRoom", tournament.id);
+        });
+
+        socket.on("chatMessage", (data: MessageData) => {
+            messageList = [
+                ...messageList,
+                data,
+            ];
+        });
+
+        socket.on("initialMessages", (data: MessageData[]) => {
+            messageList = messageList.concat(data);
+        });
+    });
+
+    afterUpdate(() => {
+        scrollToBottom();
+    });
+
+    let firstTime = true;
+    let prevScrollHeight = 0;
+    function scrollToBottom() {
+        let objDiv = document.getElementById("chatscroll");
+        console.log(objDiv);
+        if (!objDiv) return;
+
+        console.log(prevScrollHeight);
+        console.log("scroll:", objDiv.scrollTop + objDiv.clientHeight);
+
+        if (firstTime) {
+            objDiv.scrollTop = prevScrollHeight = objDiv.scrollHeight;
+            firstTime = false;
+        } else if (
+            objDiv.scrollTop + objDiv.clientHeight ===
+            prevScrollHeight
+        ) {
+            objDiv.scrollTop = prevScrollHeight = objDiv.scrollHeight;
+        } else {
+            prevScrollHeight = objDiv.scrollHeight;
+        }
+    }
+
+    function sendMessage() {
+        const message = messageInput.trim();
+        if (message) {
+            messageList = [
+                ...messageList,
+                {
+                    senderName: "",
+                    messageType: 0,
+                    message: message,
+                },
+            ];
+            socket.emit("chatMessage", tournament.id, {
+                senderName: $userData.name,
+                message: message,
+                messageType: 0,
+            });
+            messageInput = "";
+            console.log(`sent`, message);
+        }
+    }
+
+    function formatDate(date: Date) {
+        const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        const months = [
+            "JAN",
+            "FEB",
+            "MAR",
+            "APR",
+            "MAY",
+            "JUN",
+            "JUL",
+            "AUG",
+            "SEP",
+            "OCT",
+            "NOV",
+            "DEC",
+        ];
+
+        const dayOfWeek = daysOfWeek[date.getUTCDay()];
+        const dayOfMonth = date.getUTCDate();
+        const month = months[date.getUTCMonth()];
+        const hours = ("0" + date.getUTCHours()).slice(-2);
+        const minutes = ("0" + date.getUTCMinutes()).slice(-2);
+
+        return `${dayOfWeek} ${dayOfMonth} ${month}, ${hours}:${minutes}`;
+    }
+
+    const getTournamentTeams = async (id: number) => {
+        await fetch(`${PUBLIC_API_URL}/tournaments/${id}/teams`, {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error();
+            })
+            .then((data) => {
+                tournamentTeams = data["tournament"];
+
+                tournamentTeams.forEach((t) => {
+                    t.members.forEach((m) => {
+                        if (m.id == $userData.id) {
+                            alreadyJoined = true;
+                            joinedTeamName = t.name;
+                            joinedTeamId = t.id;
+                        }
+                    });
+                });
+            })
+            .catch((data) => {
+                alert(data);
+            });
+    };
+
+    const getTournamentMatches = async (id: number) => {
+        await fetch(`${PUBLIC_API_URL}/tournaments/${id}/matches`, {
+            method: "GET",
+            credentials: "include",
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error();
+            })
+            .then((data) => {
+                tournamentMatches = data["tournament"];
+
+                tournamentMatches.forEach((m) => {
+                    m.score = [0, 0];
+                    m.games.forEach((g) => {
+                        if (g.team_one_score == 16) {
+                            m.score[0] += 1;
+                        }
+                        if (g.team_two_score == 16) {
+                            m.score[1] += 1;
+                        }
+                    });
+                });
+            })
+            .catch((data) => {
+                alert(data);
+            });
+    };
+
+    const getPlayerTeams = async () => {
+        if (teams.length == 0) {
+            await fetch(`${PUBLIC_API_URL}/teams?owner=${$userData.id}`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error();
+                })
+                .then((data) => {
+                    data = data["teams"];
+                    data.forEach((t: Team) => {
+                        teams.push({ name: t.name, value: t.id });
+                    });
+                })
+                .catch((data) => {
+                    alert(data);
+                });
+        }
+        joinModal = true;
+    };
+
+    const joinTournament = async (id: number, team: number) => {
+        fetch(`${PUBLIC_API_URL}/tournaments/${id}/teams`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                team: team,
+            }),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response;
+                }
+                throw new Error();
+            })
+            .then(() => {
+                toast.push(`Joined tournament successfully!`, {
+                    theme: {
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgb(72,187,120)",
+                        "--toastBarBackground": "#2F855A",
+                    },
+                });
+                updateTournament();
+                getTournamentTeams(id);
+                joinModal = false;
+            })
+            .catch((data) => {
+                alert(data);
+            });
+    };
+
+    const leaveTournament = async (id: number, team: number) => {
+        fetch(`${PUBLIC_API_URL}/tournaments/${id}/teams/${team}`, {
+            method: "DELETE",
+            credentials: "include",
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response;
+                }
+                throw new Error();
+            })
+            .then(() => {
+                toast.push(`Left tournament successfully!`, {
+                    theme: {
+                        "--toastColor": "mintcream",
+                        "--toastBackground": "rgb(72,187,120)",
+                        "--toastBarBackground": "#2F855A",
+                    },
+                });
+                getTournamentTeams(id);
+                updateTournament();
+                alreadyJoined = false;
+            })
+            .catch((data) => {
+                alert(data);
+            });
+    };
 
     const updateStatus = async (id: number, status: number) => {
         fetch(`${PUBLIC_API_URL}/tournaments/${id}`, {
@@ -43,6 +348,7 @@
                     }
                 );
                 updateTournament();
+                getTournamentTeams(id);
             })
             .catch((data) => {
                 alert(data);
@@ -142,6 +448,11 @@
     }
 
     let tournament = data.tournament as Tournament;
+
+    onMount(() => {
+        getTournamentTeams(tournament.id);
+        scrollToBottom();
+    });
 
     const updateTournament = () => {
         fetch(`${PUBLIC_API_URL}/tournaments/${tournament.id}`, {
@@ -490,6 +801,37 @@
                                         >
                                     {/if}
                                 {/if}
+                                {#if tournament.status == 0 && !alreadyJoined}
+                                    <Button
+                                        class="mt-5 w-full"
+                                        color="yellow"
+                                        on:click={() => {
+                                            getPlayerTeams();
+                                        }}>Join Tournament</Button
+                                    >
+                                {:else if alreadyJoined}
+                                    <div
+                                        class="flex w-full justify-center mt-5 items-center"
+                                    >
+                                        <P class="mr-1"
+                                            >You are registered as:</P
+                                        >
+                                        <P weight="semibold">{joinedTeamName}</P
+                                        >
+                                        {#if tournament.status == 0}
+                                            <Button
+                                                class="ml-2"
+                                                color="red"
+                                                on:click={() => {
+                                                    leaveTournament(
+                                                        tournament.id,
+                                                        joinedTeamId
+                                                    );
+                                                }}>Leave</Button
+                                            >
+                                        {/if}
+                                    </div>
+                                {/if}
                             </div>
                         </div>
                     </div>
@@ -499,10 +841,64 @@
                 <div slot="title" class="flex items-center gap-2">Chat</div>
                 <div
                     class="border bg-white rounded-sm h-[350px] flex box-content items-end p-3"
+                    style="overflow-y: scroll;"
                 >
-                    <div class="flex w-full">
-                        <Input type="text" placeholder="Message" />
-                        <Button class="ml-2"><SendIcon /></Button>
+                    <div class="flex flex-col justify-end h-full w-full">
+                        <div
+                            id="chatscroll"
+                            class="overflow-y-scroll hide-scrollbar"
+                        >
+                            <div
+                                class="flex flex-col justify-end grow w-full gap-y-1"
+                            >
+                                {#each messageList as message}
+                                    {#if message.senderName == "" || message.senderName == $userData.name}
+                                        <div
+                                            class="flex w-full justify-end gap-x-1 max-w-2xl self-end"
+                                        >
+                                            <div
+                                                class="flex flex-row bg-green-200 rounded-xl p-2 gap-x-1"
+                                            >
+                                                <p
+                                                    style="font-weight: bold; text-align: right;"
+                                                >
+                                                    Me:
+                                                </p>
+                                                <p style="text-align: right;">
+                                                    {message.message}
+                                                </p>
+                                            </div>
+                                            <Avatar class="shrink-0" />
+                                        </div>
+                                    {:else}
+                                        <div
+                                            class="flex w-full gap-x-1 max-w-2xl"
+                                        >
+                                            <Avatar class="shrink-0" />
+
+                                            <div
+                                                class="flex flex-row bg-blue-200 rounded-xl p-2 gap-x-1"
+                                            >
+                                                <P weight="bold"
+                                                    >{message.senderName}:</P
+                                                >
+                                                <P>{message.message}</P>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                {/each}
+                            </div>
+                        </div>
+                        <div class="flex w-full pt-3">
+                            <Input
+                                type="text"
+                                placeholder="Message"
+                                bind:value={messageInput}
+                            />
+                            <Button class="ml-2" on:click={sendMessage}
+                                ><SendIcon /></Button
+                            >
+                        </div>
                     </div>
                 </div>
             </TabItem>
@@ -524,11 +920,10 @@
                             weight="bold"
                             class="w-100"
                             color="text-white"
-                            size="xs">12</P
+                            size="xs">{tournamentTeams.length}</P
                         >
                     </div>
                 </div>
-
                 <div
                     class="relative overflow-x-auto shadow-md sm:rounded-lg box-content p-3 bg-white"
                 >
@@ -572,202 +967,99 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr
-                                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            >
-                                <th
-                                    scope="row"
-                                    class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
+                            {#each tournamentTeams as t}
+                                <tr
+                                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                                 >
-                                    <img
-                                        class="w-10 h-10 rounded-full"
-                                        src="/images/placeholder.png"
-                                        alt="Jese"
-                                    />
-                                    <div class="pl-3">
-                                        <div class="text-base font-semibold">
-                                            Neil Sims
+                                    <th
+                                        scope="row"
+                                        class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
+                                    >
+                                        <img
+                                            class="w-10 h-10 rounded-full"
+                                            src={t.avatar ??
+                                                "/images/placeholder.png"}
+                                            alt="Jese"
+                                        />
+                                        <div class="pl-3">
+                                            <div
+                                                class="text-base font-semibold"
+                                            >
+                                                {t.name}
+                                            </div>
                                         </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            <tr
-                                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            >
-                                <th
-                                    scope="row"
-                                    class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                                >
-                                    <img
-                                        class="w-10 h-10 rounded-full"
-                                        src="/images/placeholder.png"
-                                        alt="Jese"
-                                    />
-                                    <div class="pl-3">
-                                        <div class="text-base font-semibold">
-                                            Neil Sims
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            <tr
-                                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            >
-                                <th
-                                    scope="row"
-                                    class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                                >
-                                    <img
-                                        class="w-10 h-10 rounded-full"
-                                        src="/images/placeholder.png"
-                                        alt="Jese"
-                                    />
-                                    <div class="pl-3">
-                                        <div class="text-base font-semibold">
-                                            Neil Sims
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            <tr
-                                class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            >
-                                <th
-                                    scope="row"
-                                    class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                                >
-                                    <img
-                                        class="w-10 h-10 rounded-full"
-                                        src="/images/placeholder.png"
-                                        alt="Jese"
-                                    />
-                                    <div class="pl-3">
-                                        <div class="text-base font-semibold">
-                                            Neil Sims
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
+                                    </th>
+                                </tr>
+                            {/each}
                         </tbody>
                     </table>
                 </div>
             </TabItem>
-            <TabItem>
+            <TabItem on:click={() => getTournamentMatches(tournament.id)}>
                 <div slot="title" class="flex items-center gap-2">Matches</div>
-                <div
-                    class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
-                >
-                    <div class="flex items-center">
-                        <P class="mr-2" size="sm">Team Pedro</P>
-                        <img
-                            class="w-10 h-10 rounded-full mr-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <P class="text-center mb-1" size="xs" weight="semibold"
-                            >FINISHED</P
+                {#if tournamentMatches.length > 0}
+                    {#each tournamentMatches as m}
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <div
+                            class="mb-5 h-[100px] box-content p-3 border bg-gray-100 cursor-pointer hover:bg-gray-200 rounded-md flex justify-center items-center"
+                            on:click={() => goto(`/matches/${m.id}`)}
                         >
-                        <P class="text-center mb-2" size="xs"
-                            >SAT 13 MAY, 18:15</P
-                        >
-                        <div class="flex justify-center">
-                            <P
-                                size="2xl"
-                                class="mr-1"
-                                color="text-green-500"
-                                weight="semibold">2</P
-                            >
-                            <P size="2xl" class="mr-1" weight="semibold">-</P>
-                            <P size="2xl" weight="semibold">0</P>
+                            <div class="flex items-center">
+                                <P class="mr-2" size="sm">{m.team_one_name}</P>
+                                <img
+                                    class="w-10 h-10 rounded-full mr-[100px]"
+                                    src="/images/placeholder.png"
+                                    alt="Jese"
+                                />
+                            </div>
+                            <div class="flex flex-col">
+                                <P
+                                    class="text-center mb-1"
+                                    size="xs"
+                                    weight="semibold"
+                                    >{m.status == 0
+                                        ? "SCHEDULED"
+                                        : m.status == 1
+                                        ? "ONGOING"
+                                        : "FINISHED"}</P
+                                >
+                                <P class="text-center mb-2" size="xs"
+                                    >{formatDate(new Date(m.createdAt))}</P
+                                >
+                                <div class="flex justify-center">
+                                    <P
+                                        size="2xl"
+                                        class="mr-1"
+                                        color={m.score[0] > m.score[1]
+                                            ? "text-green-500"
+                                            : ""}
+                                        weight="semibold">{m.score[0]}</P
+                                    >
+                                    <P size="2xl" class="mr-1" weight="semibold"
+                                        >-</P
+                                    >
+                                    <P
+                                        size="2xl"
+                                        weight="semibold"
+                                        color={m.score[0] < m.score[1]
+                                            ? "text-green-500"
+                                            : ""}>{m.score[1]}</P
+                                    >
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <img
+                                    class="w-10 h-10 rounded-full ml-[100px]"
+                                    src="/images/placeholder.png"
+                                    alt="Jese"
+                                />
+                                <P class="ml-2" size="sm">{m.team_two_name}</P>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex items-center">
-                        <img
-                            class="w-10 h-10 rounded-full ml-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                        <P class="ml-2" size="sm">Team Tomas</P>
-                    </div>
-                </div>
-                <div
-                    class="mb-5 h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
-                >
-                    <div class="flex items-center">
-                        <P class="mr-2" size="sm">Team Pedro</P>
-                        <img
-                            class="w-10 h-10 rounded-full mr-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <P class="text-center mb-1" size="xs" weight="semibold"
-                            >FINISHED</P
-                        >
-                        <P class="text-center mb-2" size="xs"
-                            >SAT 13 MAY, 18:15</P
-                        >
-                        <div class="flex justify-center">
-                            <P
-                                size="2xl"
-                                class="mr-1"
-                                color="text-green-500"
-                                weight="semibold">2</P
-                            >
-                            <P size="2xl" class="mr-1" weight="semibold">-</P>
-                            <P size="2xl" weight="semibold">0</P>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <img
-                            class="w-10 h-10 rounded-full ml-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                        <P class="ml-2" size="sm">Team Tomas</P>
-                    </div>
-                </div>
-                <div
-                    class="h-[100px] box-content p-3 border bg-gray-200 rounded-md flex justify-center items-center"
-                >
-                    <div class="flex items-center">
-                        <P class="mr-2" size="sm">Team Pedro</P>
-                        <img
-                            class="w-10 h-10 rounded-full mr-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <P class="text-center mb-1" size="xs" weight="semibold"
-                            >FINISHED</P
-                        >
-                        <P class="text-center mb-2" size="xs"
-                            >SAT 13 MAY, 18:15</P
-                        >
-                        <div class="flex justify-center">
-                            <P
-                                size="2xl"
-                                class="mr-1"
-                                color="text-green-500"
-                                weight="semibold">2</P
-                            >
-                            <P size="2xl" class="mr-1" weight="semibold">-</P>
-                            <P size="2xl" weight="semibold">0</P>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <img
-                            class="w-10 h-10 rounded-full ml-[100px]"
-                            src="/images/placeholder.png"
-                            alt="Jese"
-                        />
-                        <P class="ml-2" size="sm">Team Tomas</P>
-                    </div>
-                </div>
+                    {/each}
+                {:else}
+                    <P>Waiting for the tournament to start</P>
+                {/if}
             </TabItem>
         </Tabs>
         <Modal title="Prizes" bind:open={defaultModal} autoclose>
@@ -781,6 +1073,26 @@
                         <hr class="mt-2 mb-2" />
                     {/if}
                 {/each}
+            </div>
+        </Modal>
+        <Modal title="Join tournament" bind:open={joinModal}>
+            <div class="w-[400px]">
+                <form
+                    on:submit|preventDefault={() =>
+                        joinTournament(tournament.id, teamToJoin.id)}
+                    id="joinForm"
+                >
+                    <Label
+                        >Choose the team
+                        <Select
+                            class="mt-2"
+                            required
+                            items={teams}
+                            bind:value={teamToJoin.id}
+                        />
+                    </Label>
+                    <Button class="w-full mt-5" type="submit">Join</Button>
+                </form>
             </div>
         </Modal>
     </div>
