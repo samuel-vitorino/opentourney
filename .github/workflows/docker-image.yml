@@ -33,6 +33,9 @@ jobs:
 
     - name: Save DigitalOcean kubeconfig with short-lived credentials
       run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 cloudv2
+      
+    - name: Deploy to DigitalOcean Kubernetes
+      run: kubectl delete -f $GITHUB_WORKSPACE/config/frontend-deployment.yaml
 
     - name: Deploy to DigitalOcean Kubernetes
       run: kubectl apply -f $GITHUB_WORKSPACE/config/frontend-deployment.yaml
