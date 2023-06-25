@@ -78,9 +78,10 @@
     let messageList: MessageData[] = [];
     let messageInput = "";
 
-    const socket = io(PUBLIC_WSURL, {});
+    const socket = io(PUBLIC_WSURL, { rejectUnauthorized: false });
 
     onMount(() => {
+        console.log(socket);
         socket.on("connect", () => {
             console.log("Socket.IO connected");
             socket.emit("joinTournamentRoom", tournament.id);

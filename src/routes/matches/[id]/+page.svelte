@@ -69,7 +69,7 @@
 
     onMount(() => {
         if (match.status == 0) {
-            socket = io(PUBLIC_WSURL, {});
+            socket = io(PUBLIC_WSURL, { rejectUnauthorized: false });
 
             socket.on("connect", () => {
                 console.log("Socket.IO connected");
