@@ -78,7 +78,7 @@
     let messageList: MessageData[] = [];
     let messageInput = "";
 
-    const socket = io(PUBLIC_WSURL, { rejectUnauthorized: false });
+    const socket = io(PUBLIC_WSURL, { rejectUnauthorized: false, transports: ["websocket"] });
 
     onMount(() => {
         console.log(socket);
