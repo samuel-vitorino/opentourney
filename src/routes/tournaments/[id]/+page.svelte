@@ -78,7 +78,10 @@
     let messageList: MessageData[] = [];
     let messageInput = "";
 
-    const socket = io(PUBLIC_WSURL, { rejectUnauthorized: false, transports: ["websocket"] });
+    const socket = io(PUBLIC_WSURL, {
+        rejectUnauthorized: false,
+        transports: ["websocket"],
+    });
 
     onMount(() => {
         console.log(socket);
@@ -88,10 +91,7 @@
         });
 
         socket.on("chatMessage", (data: MessageData) => {
-            messageList = [
-                ...messageList,
-                data,
-            ];
+            messageList = [...messageList, data];
         });
 
         socket.on("initialMessages", (data: MessageData[]) => {
@@ -842,7 +842,6 @@
                 <div slot="title" class="flex items-center gap-2">Chat</div>
                 <div
                     class="border bg-white rounded-sm h-[350px] flex box-content items-end p-3"
-                    style="overflow-y: scroll;"
                 >
                     <div class="flex flex-col justify-end h-full w-full">
                         <div

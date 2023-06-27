@@ -49,6 +49,7 @@
         createdAt: string;
         status: number;
         score: [number, number];
+        connect_ip: string;
         teams: Array<Team>;
     }
 
@@ -364,7 +365,7 @@
                             <div
                                 class="flex flex-col w-[350px] h-[20px] bg-gray-200 box-content justify-center rounded-md p-4"
                             >
-                                <P>127.0.0.1:5550</P>
+                                <P>{match.connect_ip ? match.connect_ip : "Waiting for match ip..."}</P>
                             </div>
                             <P weight="semibold" size="sm" class="mt-5 mb-2"
                                 >Map{match.games.length > 1 ? "s" : ""}</P
