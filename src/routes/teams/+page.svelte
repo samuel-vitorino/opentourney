@@ -235,14 +235,14 @@
     members = [...team.members];
   };
 
-  const handleDeleteButton = async (e: Event, teamId: number) => {
+  const handleDeleteButton = async (e: Event, team: Team) => {
     e.stopPropagation();
 
     if ($userData.role === 0 && team.owner.id !== $userData.id) {
       return;
     }
 
-    const res = await fetch(`${PUBLIC_API_URL}/teams/${teamId}`, {
+    const res = await fetch(`${PUBLIC_API_URL}/teams/${team.id}`, {
       method: "DELETE",
     }).then((res) => {
       if (res.ok) {
@@ -313,7 +313,9 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ team: { owner, name, avatar, members } }),
+          body: JSON.stringify({
+            team: { owner, name, avatar: image_to_upload ?? avatar, members },
+          }),
         }).then((res) => {
           if (res.ok) {
             toast.push("Team created successfully!", {
@@ -411,8 +413,7 @@
                     class={$userData.role != 1 && team.owner.id !== $userData.id
                       ? "hidden"
                       : ""}
-                    on:click={(e) => handleDeleteButton(e, team.id)}
-                    >DELETE</Button
+                    on:click={(e) => handleDeleteButton(e, team)}>DELETE</Button
                   >
                 </TableBodyCell>
               </TableBodyRow>

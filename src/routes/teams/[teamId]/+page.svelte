@@ -35,7 +35,7 @@
       })
       .then((data) => {
         team = data !== null ? data.team : data;
-        console.log(team.members);
+        console.log(team.avatar);
       });
   });
 </script>
