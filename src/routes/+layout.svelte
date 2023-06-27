@@ -121,7 +121,9 @@
         id="avatar-menu"
         class="cursor-pointer"
         src={$userData.avatar !== null
-          ? `${PUBLIC_API_URL.replace("/api", "/images")}/${$userData.avatar}`
+          ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+              $userData.avatar
+            }`
           : undefined}
       />
     </div>

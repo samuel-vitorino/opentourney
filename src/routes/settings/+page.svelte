@@ -171,7 +171,7 @@
                     src={previewImage !== null
                       ? previewImage
                       : user.avatar
-                      ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                      ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
                           user.avatar
                         }`
                       : "/images/placeholder.png"}

@@ -52,7 +52,9 @@
         <Avatar
           class="w-[200px] h-[200px] cursor-pointer"
           src={team.avatar
-            ? `${PUBLIC_API_URL.replace("/api", "/images")}/${team.avatar}`
+            ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                team.avatar
+              }`
             : undefined}
         />
       </div>
@@ -62,7 +64,7 @@
             <Avatar
               class="w-[100px] h-[100px] cursor-pointer"
               src={member.avatar !== null
-                ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
                     member.avatar
                   }`
                 : undefined}

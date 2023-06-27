@@ -388,9 +388,10 @@
                         id="avatar-menu"
                         class="cursor-pointer"
                         src={member.avatar !== null
-                          ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
-                              member.avatar
-                            }`
+                          ? `${PUBLIC_API_URL.replace(
+                              "/api",
+                              "/backend-images"
+                            )}/${member.avatar}`
                           : undefined}
                       />
                     {/each}
@@ -439,7 +440,7 @@
           <!-- <Avatar
             class="w-[250px] h-[250px] cursor-pointer"
             src={avatar !== null
-              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${avatar}`
               : undefined}
           /> -->
           <img
@@ -448,7 +449,7 @@
             src={previewImage !== null
               ? previewImage
               : avatar
-              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${avatar}`
+              ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${avatar}`
               : "/images/placeholder.png"}
             alt="Tournament Avatar"
           />
@@ -484,9 +485,10 @@
                       id="avatar-menu"
                       class="w-[100px] h-[100px] cursor-pointer"
                       src={teamMember.avatar !== null
-                        ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
-                            teamMember.avatar
-                          }`
+                        ? `${PUBLIC_API_URL.replace(
+                            "/api",
+                            "/backend-images"
+                          )}/${teamMember.avatar}`
                         : undefined}
                     />
                   </button>
@@ -634,9 +636,10 @@
                           id="avatar-menu"
                           class="cursor-pointer"
                           src={user.avatar !== null
-                            ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
-                                user.avatar
-                              }`
+                            ? `${PUBLIC_API_URL.replace(
+                                "/api",
+                                "/backend-images"
+                              )}/${user.avatar}`
                             : undefined}
                         />
                         <div class="pl-3">

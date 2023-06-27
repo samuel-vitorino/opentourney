@@ -47,7 +47,7 @@
             id="avatar-menu"
             class="w-[150px] h-[150px] rounded-sm"
             src={data.user.avatar !== null
-              ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+              ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
                   data.user.avatar
                 }`
               : undefined}

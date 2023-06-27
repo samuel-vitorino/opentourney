@@ -28,12 +28,12 @@
   let items: Tournament[] = [];
 
   let stageTypes = [
-    {value: 0, name: "Round-Robin"},
-    {value: 1, name: "Single-Elimination"},
-    {value: 2, name: "Double-Elimination"},
-    {value: 3, name: "Round-Robin + Single-Elimination"},
-    {value: 4, name: "Round-Robin + Double-Elimination"},
-  ]
+    { value: 0, name: "Round-Robin" },
+    { value: 1, name: "Single-Elimination" },
+    { value: 2, name: "Double-Elimination" },
+    { value: 3, name: "Round-Robin + Single-Elimination" },
+    { value: 4, name: "Round-Robin + Double-Elimination" },
+  ];
 
   let formModal = false;
   let editModal = false;
@@ -139,7 +139,7 @@
         alert(data);
       });
   };
-  
+
   const handleSubmitEdit = async (id: number) => {
     fetch(`${PUBLIC_API_URL}/tournaments/${id}`, {
       method: "PUT",
@@ -368,8 +368,14 @@
             />
           </div>
           <div class="mb-6 mt-6">
-            <Label>Select the tournament stages
-              <Select class="mt-2" required items={stageTypes} bind:value={tournament.stages} />
+            <Label
+              >Select the tournament stages
+              <Select
+                class="mt-2"
+                required
+                items={stageTypes}
+                bind:value={tournament.stages}
+              />
             </Label>
           </div>
           <div class="mb-6 mt-6">
@@ -417,7 +423,10 @@
       </svelte:fragment>
     </Modal>
     <Modal bind:open={editModal} size="xs" autoclose={false} class="w-full">
-      <form on:submit|preventDefault={() => handleSubmitEdit(tournamentEdit.id)} id="editTournamentForm">
+      <form
+        on:submit|preventDefault={() => handleSubmitEdit(tournamentEdit.id)}
+        id="editTournamentForm"
+      >
         <div>
           <div class="flex flex-col items-center">
             <img
@@ -425,9 +434,11 @@
               class="w-full h-[150px] rounded-sm mb-2"
               src={previewImage !== null
                 ? previewImage
-                : tournament.avatar ? `${PUBLIC_API_URL.replace("/api", "/images")}/${
+                : tournament.avatar
+                ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
                     tournamentEdit.avatar
-                  }` : "/images/placeholder.png"}
+                  }`
+                : "/images/placeholder.png"}
               alt="Tournament Avatar"
             />
             <Fileupload
