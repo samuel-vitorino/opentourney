@@ -222,9 +222,11 @@
             <P weight="semibold" class="mr-3">{match.team_one_name}</P>
             <img
               class="w-10 h-10 rounded-full"
-              src={`${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
-                match.teams[0].avatar
-              }`}
+              src={match.teams[0].avatar
+                ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                    match.teams[0].avatar
+                  }`
+                : "/images/placeholder.png"}
               alt="Jese"
             />
           </div>
@@ -259,9 +261,11 @@
           <div class="flex items-center ml-5">
             <img
               class="w-10 h-10 rounded-full"
-              src={`${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
-                match.teams[1].avatar
-              }`}
+              src={match.teams[1].avatar
+                ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                    match.teams[1].avatar
+                  }`
+                : "/images/placeholder.png"}
               alt="Jese"
             />
             <P weight="semibold" class="ml-3">{match.team_two_name}</P>
@@ -406,9 +410,11 @@
               >
                 <img
                   class="w-10 h-10 rounded-full"
-                  src={`${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
-                    m.avatar
-                  }`}
+                  src={m.avatar
+                    ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                        m.avatar
+                      }`
+                    : "/images/placeholder.png"}
                   alt="Jese"
                 />
                 <P weight="semibold" class="ml-3">{m.name}</P>
