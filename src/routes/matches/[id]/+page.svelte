@@ -320,7 +320,7 @@
                     {:else if currentVetoStatus.team2Bans.includes(m)}
                       <P>Banned by {match.team_two_name}</P>
                     {:else if currentVetoStatus.team1Picks.includes(m)}
-                      <P>Picked by {match.team_two_name}</P>
+                      <P>Picked by {match.team_one_name}</P>
                     {:else if currentVetoStatus.team2Picks.includes(m)}
                       <P>Picked by {match.team_two_name}</P>
                     {:else if currentVetoStatus.finalMap && currentVetoStatus.finalMap == m}
