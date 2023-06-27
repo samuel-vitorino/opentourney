@@ -55,6 +55,7 @@
     createdAt: string;
     status: number;
     score: [number, number];
+    teams: Array<Team>;
   }
 
   interface MessageData {
@@ -921,7 +922,11 @@
                 <P class="mr-2" size="sm">{m.team_one_name}</P>
                 <img
                   class="w-10 h-10 rounded-full mr-[100px]"
-                  src="/images/placeholder.png"
+                  src={m.teams[0].avatar
+                    ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                        m.teams[0].avatar
+                    }`
+                    : "/images/placeholder.png"}
                   alt="Jese"
                 />
               </div>
@@ -955,7 +960,11 @@
               <div class="flex items-center">
                 <img
                   class="w-10 h-10 rounded-full ml-[100px]"
-                  src="/images/placeholder.png"
+                  src={m.teams[1].avatar
+                    ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
+                        m.teams[1].avatar
+                    }`
+                    : "/images/placeholder.png"}
                   alt="Jese"
                 />
                 <P class="ml-2" size="sm">{m.team_two_name}</P>
