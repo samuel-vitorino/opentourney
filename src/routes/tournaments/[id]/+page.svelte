@@ -890,7 +890,10 @@
                   >
                     <img
                       class="w-10 h-10 rounded-full"
-                      src={t.avatar ?? "/images/placeholder.png"}
+                      src={`${PUBLIC_API_URL.replace(
+                        "/api",
+                        "/backend-images"
+                      )}/${t.avatar}` ?? "/images/placeholder.png"}
                       alt="Jese"
                     />
                     <div class="pl-3">
