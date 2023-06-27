@@ -50,12 +50,13 @@
   interface Match {
     id: number;
     team_one_name: string;
+    team_one_avatar: string;
     team_two_name: string;
+    team_two_avatar: string;
     games: Game[];
     createdAt: string;
     status: number;
     score: [number, number];
-    teams: Array<Team>;
   }
 
   interface MessageData {
@@ -922,9 +923,9 @@
                 <P class="mr-2" size="sm">{m.team_one_name}</P>
                 <img
                   class="w-10 h-10 rounded-full mr-[100px]"
-                  src={m.teams[0].avatar
+                  src={m.team_one_avatar
                     ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
-                        m.teams[0].avatar
+                        m.team_one_avatar
                     }`
                     : "/images/placeholder.png"}
                   alt="Jese"
@@ -960,9 +961,9 @@
               <div class="flex items-center">
                 <img
                   class="w-10 h-10 rounded-full ml-[100px]"
-                  src={m.teams[1].avatar
+                  src={m.team_two_avatar
                     ? `${PUBLIC_API_URL.replace("/api", "/backend-images")}/${
-                        m.teams[1].avatar
+                        m.team_two_avatar
                     }`
                     : "/images/placeholder.png"}
                   alt="Jese"
