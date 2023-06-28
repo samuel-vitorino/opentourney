@@ -191,10 +191,10 @@
     match.score = [0, 0];
     if (match.games) {
       match.games.forEach((g) => {
-        if (g.team_one_score == 1) {
+        if (g.team_one_score == 16) {
           match.score[0] += 1;
         }
-        if (g.team_two_score == 1) {
+        if (g.team_two_score == 16) {
           match.score[1] += 1;
         }
       });
