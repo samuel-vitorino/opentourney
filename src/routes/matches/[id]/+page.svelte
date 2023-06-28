@@ -187,8 +187,6 @@
 
         match.games.sort((a: Game, b: Game) => a.order - b.order);
 
-        console.log(match.games);
-
         updateMatchScore();
       });
   };
