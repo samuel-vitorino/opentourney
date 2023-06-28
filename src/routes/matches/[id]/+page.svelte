@@ -190,7 +190,9 @@
             matchGames[g.order] = g;
         });
 
-        match.games = matchGames!;
+        data.games = matchGames!;
+
+        match = data.match;
 
         updateMatchScore();
       });
