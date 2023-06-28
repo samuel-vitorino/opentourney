@@ -183,7 +183,6 @@
         return null;
       })
       .then((data) => {
-        match = data.match;
         let matchGames: Game[];
 
         data.games.forEach((g: Game) => {
