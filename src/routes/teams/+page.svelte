@@ -373,7 +373,7 @@
         <TableBody>
           {#if filteredTeams.length > 0}
             {#each filteredTeams as team}
-              <TableBodyRow on:click={() => goto(`/teams/${team.id}`)}>
+              <TableBodyRow class="cursor-pointer" on:click={() => goto(`/teams/${team.id}`)}>
                 <TableBodyCell>
                   <div class="flex flex-row gap-2 text-center">
                     <P size="xl">{team.name}</P>

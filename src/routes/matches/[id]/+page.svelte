@@ -37,6 +37,7 @@
     status: number;
     team_one_score: number;
     team_two_score: number;
+    order: number;
     map: string;
   }
 
@@ -183,6 +184,14 @@
       })
       .then((data) => {
         match = data.match;
+        let matchGames: Game[];
+
+        data.games.forEach((g: Game) => {
+            matchGames[g.order] = g;
+        });
+
+        match.games = matchGames!;
+
         updateMatchScore();
       });
   };
@@ -370,32 +379,21 @@
                 </div>
               {/each}
             {:else}
-              <P weight="semibold" size="sm" class="mb-2">Server</P>
-              <div
-                class="flex flex-col w-[350px] h-[20px] bg-gray-200 box-content justify-center rounded-md p-4"
-              >
-                <div class="flex items-center">
-                  <img
-                    src="/images/portugal.png"
-                    class="mr-5 w-[60px] h-[40px] rounded-md"
-                    alt="Server location flag"
-                  />
-                  <P weight="semibold" size="sm">Portugal</P>
+              <P weight="semibold" size="sm" class="mt-5 mb-2">Maps</P>
+              {#each match.games as g}
+                <div
+                  class="flex flex-col w-[350px] h-[20px] bg-gray-200 box-content justify-center rounded-md p-4 mb-2"
+                >
+                  <div class="flex items-center">
+                    <img
+                      src={`/images/${g.map}.jpg`}
+                      class="mr-5 w-[60px] h-[40px] rounded-md"
+                      alt="Server location flag"
+                    />
+                    <P weight="semibold" size="sm">{g.map}</P>
+                  </div>
                 </div>
-              </div>
-              <P weight="semibold" size="sm" class="mt-5 mb-2">Map</P>
-              <div
-                class="flex flex-col w-[350px] h-[20px] bg-gray-200 box-content justify-center rounded-md p-4"
-              >
-                <div class="flex items-center">
-                  <img
-                    src="/images/Dust2.jpg"
-                    class="mr-5 w-[60px] h-[40px] rounded-md"
-                    alt="Server location flag"
-                  />
-                  <P weight="semibold" size="sm">Dust 2</P>
-                </div>
-              </div>
+              {/each}
               <div class="w-full flex justify-center mt-[50px]">
                 <P weight="semibold" size="sm" color="text-orange-500"
                   >WATCH DEMO</P
