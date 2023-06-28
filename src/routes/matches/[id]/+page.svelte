@@ -183,13 +183,13 @@
         return null;
       })
       .then((data) => {
-        let matchGames: Game[];
+        let matchGames: Game[] = [];
 
-        data.games.forEach((g: Game) => {
+        data.match.games.forEach((g: Game) => {
             matchGames[g.order] = g;
         });
 
-        data.games = matchGames!;
+        data.match.games = matchGames!;
 
         match = data.match;
 
