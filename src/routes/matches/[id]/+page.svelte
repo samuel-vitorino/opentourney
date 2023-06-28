@@ -378,7 +378,7 @@
                   </div>
                 </div>
               {/each}
-            {:else}
+            {:else if match.status == 2}
               <P weight="semibold" size="sm" class="mt-5 mb-2">Maps</P>
               {#each match.games as g}
                 <div
