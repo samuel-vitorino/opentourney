@@ -1,5 +1,7 @@
 # OpenTourney
 
+[Main page](repo_cover_main.png)
+
 Frontend for the OpenTourney app, powered by Svelte.
 
 ## Developing
